@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  StyleSheet,
   View,
   Text,
   ScrollView,
@@ -16,11 +15,17 @@ import { useAnalysis } from "../hooks/useAnalysis";
 import TextField from "../components/form/TextField";
 import type { AnalysisResult } from "../types/analysis";
 import type { KeyboardTypeOptions } from "react-native";
+import { useColorScheme } from "../hooks/useColorScheme";
+import { createAnalysisStyles } from "../styles/analysisStyles";
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<AnalysisRouteParams>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const styles = createAnalysisStyles(
+    colorScheme === "dark" ? "dark" : "light"
+  );
 
   const {
     isLoading,
@@ -152,118 +157,3 @@ export default function AnalysisScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  center: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  imageContainer: {
-    margin: 16,
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  capturedImage: {
-    width: "100%",
-    height: 200,
-    resizeMode: "cover",
-  },
-  analysisContainer: {
-    margin: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 16,
-  },
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 6,
-  },
-  fieldInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#fafafa",
-    color: "#333",
-  },
-  multilineInput: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-  bottomContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  completeButton: {
-    backgroundColor: "#2f6ef6",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  completeButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#ff6b6b",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: "#2f6ef6",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
