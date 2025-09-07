@@ -1,0 +1,78 @@
+import { useEffect, useRef, useState } from "react";
+import { analyzeImage, completeDelivery } from "../services/analysisService";
+import type { AnalysisResult } from "../types/analysis";
+
+export function useAnalysis(photoUri?: string) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
+    null
+  );
+  const [editableData, setEditableData] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    if (photoUri) {
+      // 초기 로드
+      loadAnalysis();
+    } else {
+      setIsLoading(false);
+    }
+    return () => {
+      mountedRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoUri]);
+
+  const loadAnalysis = async () => {
+    if (!photoUri) {
+      setError("사진 경로가 없습니다.");
+      setIsLoading(false);
+      return;
+    }
+    try {
+      setError(null);
+      setIsLoading(true);
+      const result = await analyzeImage(photoUri);
+      if (!mountedRef.current) return;
+      setAnalysisResult(result);
+      setEditableData(result);
+    } catch (e: any) {
+      if (!mountedRef.current) return;
+      setError(e?.message ?? "분석 중 오류가 발생했습니다.");
+    } finally {
+      if (mountedRef.current) setIsLoading(false);
+    }
+  };
+
+  const handleFieldChange = (field: keyof AnalysisResult, value: string) => {
+    if (editableData) {
+      setEditableData({
+        ...editableData,
+        [field]: value,
+      } as AnalysisResult);
+    }
+  };
+
+  const handleComplete = async (): Promise<boolean> => {
+    if (!editableData) return false;
+    try {
+      const success = await completeDelivery(editableData);
+      return success;
+    } catch {
+      return false;
+    }
+  };
+
+  return {
+    isLoading,
+    analysisResult,
+    editableData,
+    error,
+    loadAnalysis,
+    handleFieldChange,
+    handleComplete,
+  } as const;
+}

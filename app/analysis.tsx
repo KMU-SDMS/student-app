@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   ScrollView,
   TouchableOpacity,
   Image,
@@ -13,76 +12,34 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { AnalysisRouteParams } from "../types/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { analyzeImage, completeDelivery } from "../services/analysisService";
-
-interface AnalysisResult {
-  recipientName: string;
-  recipientPhone: string;
-  recipientAddress: string;
-  senderName: string;
-  senderPhone: string;
-  trackingNumber: string;
-  packageType: string;
-  weight: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  status: string;
-  notes: string;
-}
+import { useAnalysis } from "../hooks/useAnalysis";
+import TextField from "../components/form/TextField";
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<AnalysisRouteParams>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
-    null
-  );
-  const [editableData, setEditableData] = useState<AnalysisResult | null>(null);
+  const {
+    isLoading,
+    analysisResult,
+    editableData,
+    error,
+    loadAnalysis,
+    handleFieldChange,
+    handleComplete,
+  } = useAnalysis(photoUri);
 
-  useEffect(() => {
-    if (photoUri) {
-      loadAnalysis();
-    }
-  }, [photoUri]);
-
-  const loadAnalysis = async () => {
-    try {
-      setIsLoading(true);
-      const result = await analyzeImage(photoUri);
-      setAnalysisResult(result);
-      setEditableData(result);
-    } catch (error) {
-      console.error("분석 중 오류 발생:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFieldChange = (field: keyof AnalysisResult, value: string) => {
-    if (editableData) {
-      setEditableData({
-        ...editableData,
-        [field]: value,
-      });
-    }
-  };
-
-  const handleComplete = async () => {
-    if (!editableData) return;
-
-    try {
-      const success = await completeDelivery(editableData);
-      if (success) {
-        Alert.alert("수령 완료", "택배 수령이 완료되었습니다.", [
-          {
-            text: "확인",
-            onPress: () => router.push("/(tabs)"),
-          },
-        ]);
-      }
-    } catch (error) {
+  const onPressComplete = async () => {
+    const success = await handleComplete();
+    if (success) {
+      Alert.alert("수령 완료", "택배 수령이 완료되었습니다.", [
+        {
+          text: "확인",
+          onPress: () => router.push("/(tabs)"),
+        },
+      ]);
+    } else {
       Alert.alert("오류", "수령 완료 처리 중 오류가 발생했습니다.");
     }
   };
@@ -96,10 +53,12 @@ export default function AnalysisScreen() {
     );
   }
 
-  if (!analysisResult || !editableData) {
+  if (error || !analysisResult || !editableData) {
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={styles.errorText}>분석 결과를 불러올 수 없습니다.</Text>
+        <Text style={styles.errorText}>
+          {error ?? "분석 결과를 불러올 수 없습니다."}
+        </Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadAnalysis}>
           <Text style={styles.retryButtonText}>다시 시도</Text>
         </TouchableOpacity>
@@ -122,139 +81,95 @@ export default function AnalysisScreen() {
         <View style={styles.analysisContainer}>
           <Text style={styles.sectionTitle}>분석 결과</Text>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>수령인</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.recipientName}
-              onChangeText={(value) =>
-                handleFieldChange("recipientName", value)
-              }
-              placeholder="수령인 이름"
-            />
-          </View>
+          <TextField
+            label="수령인"
+            value={editableData.recipientName}
+            onChangeText={(value) => handleFieldChange("recipientName", value)}
+            placeholder="수령인 이름"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>수령인 연락처</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.recipientPhone}
-              onChangeText={(value) =>
-                handleFieldChange("recipientPhone", value)
-              }
-              placeholder="수령인 연락처"
-              keyboardType="phone-pad"
-            />
-          </View>
+          <TextField
+            label="수령인 연락처"
+            value={editableData.recipientPhone}
+            onChangeText={(value) => handleFieldChange("recipientPhone", value)}
+            placeholder="수령인 연락처"
+            keyboardType="phone-pad"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>수령인 주소</Text>
-            <TextInput
-              style={[styles.fieldInput, styles.multilineInput]}
-              value={editableData.recipientAddress}
-              onChangeText={(value) =>
-                handleFieldChange("recipientAddress", value)
-              }
-              placeholder="수령인 주소"
-              multiline
-              numberOfLines={2}
-            />
-          </View>
+          <TextField
+            label="수령인 주소"
+            value={editableData.recipientAddress}
+            onChangeText={(value) =>
+              handleFieldChange("recipientAddress", value)
+            }
+            placeholder="수령인 주소"
+            multiline
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>발송인</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.senderName}
-              onChangeText={(value) => handleFieldChange("senderName", value)}
-              placeholder="발송인 이름"
-            />
-          </View>
+          <TextField
+            label="발송인"
+            value={editableData.senderName}
+            onChangeText={(value) => handleFieldChange("senderName", value)}
+            placeholder="발송인 이름"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>발송인 연락처</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.senderPhone}
-              onChangeText={(value) => handleFieldChange("senderPhone", value)}
-              placeholder="발송인 연락처"
-              keyboardType="phone-pad"
-            />
-          </View>
+          <TextField
+            label="발송인 연락처"
+            value={editableData.senderPhone}
+            onChangeText={(value) => handleFieldChange("senderPhone", value)}
+            placeholder="발송인 연락처"
+            keyboardType="phone-pad"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>운송장 번호</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.trackingNumber}
-              onChangeText={(value) =>
-                handleFieldChange("trackingNumber", value)
-              }
-              placeholder="운송장 번호"
-            />
-          </View>
+          <TextField
+            label="운송장 번호"
+            value={editableData.trackingNumber}
+            onChangeText={(value) => handleFieldChange("trackingNumber", value)}
+            placeholder="운송장 번호"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>택배 종류</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.packageType}
-              onChangeText={(value) => handleFieldChange("packageType", value)}
-              placeholder="택배 종류"
-            />
-          </View>
+          <TextField
+            label="택배 종류"
+            value={editableData.packageType}
+            onChangeText={(value) => handleFieldChange("packageType", value)}
+            placeholder="택배 종류"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>무게</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.weight}
-              onChangeText={(value) => handleFieldChange("weight", value)}
-              placeholder="무게"
-            />
-          </View>
+          <TextField
+            label="무게"
+            value={editableData.weight}
+            onChangeText={(value) => handleFieldChange("weight", value)}
+            placeholder="무게"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>배송일</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.deliveryDate}
-              onChangeText={(value) => handleFieldChange("deliveryDate", value)}
-              placeholder="배송일"
-            />
-          </View>
+          <TextField
+            label="배송일"
+            value={editableData.deliveryDate}
+            onChangeText={(value) => handleFieldChange("deliveryDate", value)}
+            placeholder="배송일"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>배송시간</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.deliveryTime}
-              onChangeText={(value) => handleFieldChange("deliveryTime", value)}
-              placeholder="배송시간"
-            />
-          </View>
+          <TextField
+            label="배송시간"
+            value={editableData.deliveryTime}
+            onChangeText={(value) => handleFieldChange("deliveryTime", value)}
+            placeholder="배송시간"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>배송상태</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={editableData.status}
-              onChangeText={(value) => handleFieldChange("status", value)}
-              placeholder="배송상태"
-            />
-          </View>
+          <TextField
+            label="배송상태"
+            value={editableData.status}
+            onChangeText={(value) => handleFieldChange("status", value)}
+            placeholder="배송상태"
+          />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>특이사항</Text>
-            <TextInput
-              style={[styles.fieldInput, styles.multilineInput]}
-              value={editableData.notes}
-              onChangeText={(value) => handleFieldChange("notes", value)}
-              placeholder="특이사항"
-              multiline
-              numberOfLines={3}
-            />
-          </View>
+          <TextField
+            label="특이사항"
+            value={editableData.notes}
+            onChangeText={(value) => handleFieldChange("notes", value)}
+            placeholder="특이사항"
+            multiline
+          />
         </View>
       </ScrollView>
 
@@ -264,7 +179,7 @@ export default function AnalysisScreen() {
       >
         <TouchableOpacity
           style={styles.completeButton}
-          onPress={handleComplete}
+          onPress={onPressComplete}
         >
           <Text style={styles.completeButtonText}>수령 완료</Text>
         </TouchableOpacity>

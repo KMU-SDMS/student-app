@@ -1,27 +1,9 @@
 // API Gateway를 통한 이미지 분석 서비스
 // 실제 구현 시에는 API Gateway 엔드포인트로 교체
-
-interface AnalysisRequest {
-  imageUri: string;
-}
-
-interface AnalysisResponse {
-  recipientName: string;
-  recipientPhone: string;
-  recipientAddress: string;
-  senderName: string;
-  senderPhone: string;
-  trackingNumber: string;
-  packageType: string;
-  weight: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  status: string;
-  notes: string;
-}
+import type { AnalysisResult } from "../types/analysis";
 
 // 모킹 데이터 생성 함수
-const generateMockData = (): AnalysisResponse => {
+const generateMockData = (): AnalysisResult => {
   const names = ["김철수", "이영희", "박민수", "최지영", "정현우"];
   const addresses = [
     "서울시 강남구 테헤란로 123",
@@ -66,7 +48,7 @@ const generateMockData = (): AnalysisResponse => {
 // 실제 API 호출 함수 (현재는 모킹)
 export const analyzeImage = async (
   imageUri: string
-): Promise<AnalysisResponse> => {
+): Promise<AnalysisResult> => {
   try {
     // 2초 로딩 시뮬레이션
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -101,7 +83,7 @@ export const analyzeImage = async (
 
 // 수령 완료 API (모킹)
 export const completeDelivery = async (
-  analysisData: AnalysisResponse
+  analysisData: AnalysisResult
 ): Promise<boolean> => {
   try {
     // 1초 로딩 시뮬레이션
