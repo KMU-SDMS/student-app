@@ -37,3 +37,11 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+.vscode/
+
+# Android 빌드 파일들
+android/
+
+# iOS 빌드 파일들
+ios/
