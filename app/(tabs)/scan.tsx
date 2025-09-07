@@ -4,8 +4,10 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 export default function ScanTabScreen() {
+  const router = useRouter();
   const cameraRef = useRef<CameraView | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [isCapturing, setIsCapturing] = useState(false);
@@ -62,7 +64,11 @@ export default function ScanTabScreen() {
         skipProcessing: false,
       });
       if (photo?.uri) {
-        // 후속 단계(업로드/미리보기)는 이후 팀 연동 시 추가
+        // 분석 페이지로 이동 (사진 URI 전달)
+        router.push({
+          pathname: '/analysis',
+          params: { photoUri: photo.uri }
+        });
       }
     } catch (e) {
       setErrorMessage('촬영 중 오류가 발생했습니다. 다시 시도해 주세요.');
