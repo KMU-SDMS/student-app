@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.expo/
+web-build/
+
+# Native build files
+android/
+ios/
+
+# Cache and temporary files
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+.metro-health-check*
+
+# Logs
+*.log
+logs/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated files
+expo-env.d.ts
+*.orig.*
+
+# Security files
+*.key
+*.p8
+*.p12
+*.jks
+*.mobileprovision
+*.pem
+
+# Large assets (optional)
+assets/
