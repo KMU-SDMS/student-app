@@ -45,3 +45,5 @@ android/
 
 # iOS 빌드 파일들
 ios/
+
+temp-prompt/
