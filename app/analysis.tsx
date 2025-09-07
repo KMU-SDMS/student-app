@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import type { AnalysisRouteParams } from "../types/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { analyzeImage, completeDelivery } from "../services/analysisService";
 
@@ -30,7 +31,7 @@ interface AnalysisResult {
 }
 
 export default function AnalysisScreen() {
-  const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
+  const { photoUri } = useLocalSearchParams<AnalysisRouteParams>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
