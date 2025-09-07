@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function ScanTabScreen() {
   const cameraRef = useRef<CameraView | null>(null);
@@ -10,9 +11,24 @@ export default function ScanTabScreen() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cameraKey, setCameraKey] = useState(0); // 카메라 재마운트를 위한 key
+  const [isFocused, setIsFocused] = useState(false);
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
   const bottomOffset = tabBarHeight; // 카메라는 전체로 두고, 컨트롤만 탭바 만큼 올림
+
+  // 탭 포커스 상태 관리
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsFocused(true);
+      // 탭이 포커스될 때마다 카메라를 재마운트
+      setCameraKey(prev => prev + 1);
+      
+      return () => {
+        setIsFocused(false);
+      };
+    }, [])
+  );
 
   useEffect(() => {
     if (!permission) return;
@@ -59,12 +75,15 @@ export default function ScanTabScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView
-        ref={(ref) => { cameraRef.current = ref; }}
-        style={StyleSheet.absoluteFill}
-        facing="back"
-        enableTorch={torchOn}
-      />
+      {isFocused && (
+        <CameraView
+          key={cameraKey}
+          ref={(ref) => { cameraRef.current = ref; }}
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          enableTorch={torchOn}
+        />
+      )}
 
       {/* 하단 컨트롤 */}
       <View style={[styles.controls, { bottom: bottomOffset + 16 + insets.bottom }]}> 
