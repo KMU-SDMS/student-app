@@ -17,6 +17,7 @@ import type { AnalysisResult } from "../types/analysis";
 import type { KeyboardTypeOptions } from "react-native";
 import { useColorScheme } from "../hooks/useColorScheme";
 import { createAnalysisStyles } from "../styles/analysisStyles";
+import { t } from "../utils/i18n";
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<AnalysisRouteParams>();
@@ -40,14 +41,14 @@ export default function AnalysisScreen() {
   const onPressComplete = async () => {
     const success = await handleComplete();
     if (success) {
-      Alert.alert("수령 완료", "택배 수령이 완료되었습니다.", [
+      Alert.alert(t("analysis.completeTitle"), t("analysis.completeMessage"), [
         {
-          text: "확인",
+          text: t("analysis.confirm"),
           onPress: () => router.push("/(tabs)"),
         },
       ]);
     } else {
-      Alert.alert("오류", "수령 완료 처리 중 오류가 발생했습니다.");
+      Alert.alert(t("analysis.errorTitle"), t("analysis.completeError"));
     }
   };
 
@@ -55,7 +56,7 @@ export default function AnalysisScreen() {
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#2f6ef6" />
-        <Text style={styles.loadingText}>사진을 분석하고 있습니다...</Text>
+        <Text style={styles.loadingText}>{t("analysis.loading")}</Text>
       </View>
     );
   }
@@ -64,10 +65,10 @@ export default function AnalysisScreen() {
     return (
       <View style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>
-          {error ?? "분석 결과를 불러올 수 없습니다."}
+          {error ?? t("analysis.errorGeneric")}
         </Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadAnalysis}>
-          <Text style={styles.retryButtonText}>다시 시도</Text>
+          <Text style={styles.retryButtonText}>{t("analysis.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -80,36 +81,68 @@ export default function AnalysisScreen() {
     multiline?: boolean;
     keyboardType?: KeyboardTypeOptions;
   }[] = [
-    { key: "recipientName", label: "수령인", placeholder: "수령인 이름" },
+    {
+      key: "recipientName",
+      label: t("analysis.recipientName"),
+      placeholder: t("analysis.recipientNamePlaceholder"),
+    },
     {
       key: "recipientPhone",
-      label: "수령인 연락처",
+      label: t("analysis.recipientPhone"),
       keyboardType: "phone-pad",
-      placeholder: "수령인 연락처",
+      placeholder: t("analysis.recipientPhonePlaceholder"),
     },
     {
       key: "recipientAddress",
-      label: "수령인 주소",
-      placeholder: "수령인 주소",
+      label: t("analysis.recipientAddress"),
+      placeholder: t("analysis.recipientAddressPlaceholder"),
       multiline: true,
     },
-    { key: "senderName", label: "발송인", placeholder: "발송인 이름" },
+    {
+      key: "senderName",
+      label: t("analysis.senderName"),
+      placeholder: t("analysis.senderNamePlaceholder"),
+    },
     {
       key: "senderPhone",
-      label: "발송인 연락처",
+      label: t("analysis.senderPhone"),
       keyboardType: "phone-pad",
-      placeholder: "발송인 연락처",
+      placeholder: t("analysis.senderPhonePlaceholder"),
     },
-    { key: "trackingNumber", label: "운송장 번호", placeholder: "운송장 번호" },
-    { key: "packageType", label: "택배 종류", placeholder: "택배 종류" },
-    { key: "weight", label: "무게", placeholder: "무게" },
-    { key: "deliveryDate", label: "배송일", placeholder: "배송일" },
-    { key: "deliveryTime", label: "배송시간", placeholder: "배송시간" },
-    { key: "status", label: "배송상태", placeholder: "배송상태" },
+    {
+      key: "trackingNumber",
+      label: t("analysis.trackingNumber"),
+      placeholder: t("analysis.trackingNumberPlaceholder"),
+    },
+    {
+      key: "packageType",
+      label: t("analysis.packageType"),
+      placeholder: t("analysis.packageTypePlaceholder"),
+    },
+    {
+      key: "weight",
+      label: t("analysis.weight"),
+      placeholder: t("analysis.weightPlaceholder"),
+    },
+    {
+      key: "deliveryDate",
+      label: t("analysis.deliveryDate"),
+      placeholder: t("analysis.deliveryDatePlaceholder"),
+    },
+    {
+      key: "deliveryTime",
+      label: t("analysis.deliveryTime"),
+      placeholder: t("analysis.deliveryTimePlaceholder"),
+    },
+    {
+      key: "status",
+      label: t("analysis.status"),
+      placeholder: t("analysis.statusPlaceholder"),
+    },
     {
       key: "notes",
-      label: "특이사항",
-      placeholder: "특이사항",
+      label: t("analysis.notes"),
+      placeholder: t("analysis.notesPlaceholder"),
       multiline: true,
     },
   ];
@@ -127,7 +160,7 @@ export default function AnalysisScreen() {
 
         {/* 분석 결과 */}
         <View style={styles.analysisContainer}>
-          <Text style={styles.sectionTitle}>분석 결과</Text>
+          <Text style={styles.sectionTitle}>{t("analysis.resultTitle")}</Text>
 
           {fieldConfigs.map((cfg) => (
             <TextField
@@ -151,7 +184,9 @@ export default function AnalysisScreen() {
           style={styles.completeButton}
           onPress={onPressComplete}
         >
-          <Text style={styles.completeButtonText}>수령 완료</Text>
+          <Text style={styles.completeButtonText}>
+            {t("analysis.complete")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
