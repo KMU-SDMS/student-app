@@ -14,6 +14,8 @@ import type { AnalysisRouteParams } from "../types/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAnalysis } from "../hooks/useAnalysis";
 import TextField from "../components/form/TextField";
+import type { AnalysisResult } from "../types/analysis";
+import type { KeyboardTypeOptions } from "react-native";
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<AnalysisRouteParams>();
@@ -66,6 +68,47 @@ export default function AnalysisScreen() {
     );
   }
 
+  const fieldConfigs: {
+    key: keyof AnalysisResult;
+    label: string;
+    placeholder?: string;
+    multiline?: boolean;
+    keyboardType?: KeyboardTypeOptions;
+  }[] = [
+    { key: "recipientName", label: "수령인", placeholder: "수령인 이름" },
+    {
+      key: "recipientPhone",
+      label: "수령인 연락처",
+      keyboardType: "phone-pad",
+      placeholder: "수령인 연락처",
+    },
+    {
+      key: "recipientAddress",
+      label: "수령인 주소",
+      placeholder: "수령인 주소",
+      multiline: true,
+    },
+    { key: "senderName", label: "발송인", placeholder: "발송인 이름" },
+    {
+      key: "senderPhone",
+      label: "발송인 연락처",
+      keyboardType: "phone-pad",
+      placeholder: "발송인 연락처",
+    },
+    { key: "trackingNumber", label: "운송장 번호", placeholder: "운송장 번호" },
+    { key: "packageType", label: "택배 종류", placeholder: "택배 종류" },
+    { key: "weight", label: "무게", placeholder: "무게" },
+    { key: "deliveryDate", label: "배송일", placeholder: "배송일" },
+    { key: "deliveryTime", label: "배송시간", placeholder: "배송시간" },
+    { key: "status", label: "배송상태", placeholder: "배송상태" },
+    {
+      key: "notes",
+      label: "특이사항",
+      placeholder: "특이사항",
+      multiline: true,
+    },
+  ];
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -81,95 +124,17 @@ export default function AnalysisScreen() {
         <View style={styles.analysisContainer}>
           <Text style={styles.sectionTitle}>분석 결과</Text>
 
-          <TextField
-            label="수령인"
-            value={editableData.recipientName}
-            onChangeText={(value) => handleFieldChange("recipientName", value)}
-            placeholder="수령인 이름"
-          />
-
-          <TextField
-            label="수령인 연락처"
-            value={editableData.recipientPhone}
-            onChangeText={(value) => handleFieldChange("recipientPhone", value)}
-            placeholder="수령인 연락처"
-            keyboardType="phone-pad"
-          />
-
-          <TextField
-            label="수령인 주소"
-            value={editableData.recipientAddress}
-            onChangeText={(value) =>
-              handleFieldChange("recipientAddress", value)
-            }
-            placeholder="수령인 주소"
-            multiline
-          />
-
-          <TextField
-            label="발송인"
-            value={editableData.senderName}
-            onChangeText={(value) => handleFieldChange("senderName", value)}
-            placeholder="발송인 이름"
-          />
-
-          <TextField
-            label="발송인 연락처"
-            value={editableData.senderPhone}
-            onChangeText={(value) => handleFieldChange("senderPhone", value)}
-            placeholder="발송인 연락처"
-            keyboardType="phone-pad"
-          />
-
-          <TextField
-            label="운송장 번호"
-            value={editableData.trackingNumber}
-            onChangeText={(value) => handleFieldChange("trackingNumber", value)}
-            placeholder="운송장 번호"
-          />
-
-          <TextField
-            label="택배 종류"
-            value={editableData.packageType}
-            onChangeText={(value) => handleFieldChange("packageType", value)}
-            placeholder="택배 종류"
-          />
-
-          <TextField
-            label="무게"
-            value={editableData.weight}
-            onChangeText={(value) => handleFieldChange("weight", value)}
-            placeholder="무게"
-          />
-
-          <TextField
-            label="배송일"
-            value={editableData.deliveryDate}
-            onChangeText={(value) => handleFieldChange("deliveryDate", value)}
-            placeholder="배송일"
-          />
-
-          <TextField
-            label="배송시간"
-            value={editableData.deliveryTime}
-            onChangeText={(value) => handleFieldChange("deliveryTime", value)}
-            placeholder="배송시간"
-          />
-
-          <TextField
-            label="배송상태"
-            value={editableData.status}
-            onChangeText={(value) => handleFieldChange("status", value)}
-            placeholder="배송상태"
-          />
-
-          <TextField
-            label="특이사항"
-            value={editableData.notes}
-            onChangeText={(value) => handleFieldChange("notes", value)}
-            placeholder="특이사항"
-            multiline
-          />
+          {fieldConfigs.map((cfg) => (
+            <TextField
+              key={cfg.key as string}
+              label={cfg.label}
+              value={editableData[cfg.key]}
+              onChangeText={(v) => handleFieldChange(cfg.key, v)}
+              placeholder={cfg.placeholder}
+              multiline={cfg.multiline}
+              keyboardType={cfg.keyboardType}
+            />
+          ))}
         </View>
       </ScrollView>
 
