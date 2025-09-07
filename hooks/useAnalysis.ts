@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { analyzeImage, completeDelivery } from "../services/analysisService";
 import type { AnalysisResult } from "../types/analysis";
 
@@ -47,14 +47,14 @@ export function useAnalysis(photoUri?: string) {
     }
   };
 
-  const handleFieldChange = (field: keyof AnalysisResult, value: string) => {
-    if (editableData) {
-      setEditableData({
-        ...editableData,
-        [field]: value,
-      } as AnalysisResult);
-    }
-  };
+  const handleFieldChange = useCallback(
+    (field: keyof AnalysisResult, value: string) => {
+      setEditableData((prev) =>
+        prev ? ({ ...prev, [field]: value } as AnalysisResult) : prev
+      );
+    },
+    []
+  );
 
   const handleComplete = async (): Promise<boolean> => {
     if (!editableData) return false;

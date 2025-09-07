@@ -38,42 +38,7 @@ export default function AnalysisScreen() {
     handleComplete,
   } = useAnalysis(photoUri);
 
-  const onPressComplete = async () => {
-    const success = await handleComplete();
-    if (success) {
-      Alert.alert(t("analysis.completeTitle"), t("analysis.completeMessage"), [
-        {
-          text: t("analysis.confirm"),
-          onPress: () => router.push("/(tabs)"),
-        },
-      ]);
-    } else {
-      Alert.alert(t("analysis.errorTitle"), t("analysis.completeError"));
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#2f6ef6" />
-        <Text style={styles.loadingText}>{t("analysis.loading")}</Text>
-      </View>
-    );
-  }
-
-  if (error || !analysisResult || !editableData) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <Text style={styles.errorText}>
-          {error ?? t("analysis.errorGeneric")}
-        </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadAnalysis}>
-          <Text style={styles.retryButtonText}>{t("analysis.retry")}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
+  // 필드 구성/핸들러는 훅 규칙 위반을 피하기 위해 조건부 렌더 이전에 정의
   const fieldConfigs: {
     key: keyof AnalysisResult;
     label: string;
@@ -147,6 +112,50 @@ export default function AnalysisScreen() {
     },
   ];
 
+  const changeHandlers = React.useMemo(() => {
+    const handlers = {} as Record<keyof AnalysisResult, (v: string) => void>;
+    fieldConfigs.forEach((cfg) => {
+      handlers[cfg.key] = (v: string) => handleFieldChange(cfg.key, v);
+    });
+    return handlers;
+  }, [handleFieldChange]);
+
+  const onPressComplete = async () => {
+    const success = await handleComplete();
+    if (success) {
+      Alert.alert(t("analysis.completeTitle"), t("analysis.completeMessage"), [
+        {
+          text: t("analysis.confirm"),
+          onPress: () => router.push("/(tabs)"),
+        },
+      ]);
+    } else {
+      Alert.alert(t("analysis.errorTitle"), t("analysis.completeError"));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color="#2f6ef6" />
+        <Text style={styles.loadingText}>{t("analysis.loading")}</Text>
+      </View>
+    );
+  }
+
+  if (error || !analysisResult || !editableData) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <Text style={styles.errorText}>
+          {error ?? t("analysis.errorGeneric")}
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadAnalysis}>
+          <Text style={styles.retryButtonText}>{t("analysis.retry")}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -167,7 +176,7 @@ export default function AnalysisScreen() {
               key={cfg.key as string}
               label={cfg.label}
               value={editableData[cfg.key]}
-              onChangeText={(v) => handleFieldChange(cfg.key, v)}
+              onChangeText={changeHandlers[cfg.key]}
               placeholder={cfg.placeholder}
               multiline={cfg.multiline}
               keyboardType={cfg.keyboardType}
