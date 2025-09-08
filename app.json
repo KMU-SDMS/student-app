@@ -3,7 +3,7 @@
     "name": "PostScan",
     "slug": "PostScan",
     "version": "1.0.0",
-    "orientation": "landscape",
+    "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "postscan",
     "userInterfaceStyle": "automatic",
