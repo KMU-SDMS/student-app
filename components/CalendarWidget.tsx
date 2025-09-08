@@ -88,29 +88,22 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
       days.push(
         <TouchableOpacity
           key={day}
-          style={[
-            styles.dayContainer,
-            isTodayDay && styles.todayContainer
-          ]}
+          style={styles.dayContainer}
           onPress={() => selectDate(day)}
         >
-          <Text style={[
-            styles.dayText,
-            isTodayDay && styles.todayText
-          ]}>
-            {day}
-          </Text>
+          <View style={isTodayDay ? styles.todayContainer : undefined}>
+            <Text style={[
+              styles.dayText,
+              isTodayDay && styles.todayText
+            ]}>
+              {day}
+            </Text>
+          </View>
           {hasRegular && !hasCleaning && (
-            <View style={[
-              styles.regularRollCallDot,
-              isTodayDay && styles.regularRollCallDotToday
-            ]} />
+            <View style={styles.regularRollCallDot} />
           )}
           {hasCleaning && (
-            <View style={[
-              styles.cleaningRollCallDot,
-              isTodayDay && styles.cleaningRollCallDotToday
-            ]} />
+            <View style={styles.cleaningRollCallDot} />
           )}
         </TouchableOpacity>
       );
@@ -274,8 +267,12 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
   },
   todayContainer: {
-    backgroundColor: '#007AFF',
-    borderRadius: 22,
+    width: 28,
+    height: 28,
+    borderRadius: 18,
+    backgroundColor: '#6296ffff',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#007AFF',
     shadowOffset: {
       width: 0,
@@ -305,10 +302,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  regularRollCallDotToday: {
-    backgroundColor: 'white',
-    shadowColor: 'white',
-  },
   cleaningRollCallDot: {
     position: 'absolute',
     bottom: -6,
@@ -324,10 +317,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 2,
     elevation: 2,
-  },
-  cleaningRollCallDotToday: {
-    backgroundColor: 'white',
-    shadowColor: 'white',
   },
   legend: {
     marginTop: 8,
