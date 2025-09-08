@@ -6,7 +6,7 @@ import { t } from "../utils/i18n";
 export function useAnalysis(photoUri?: string) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
-    null
+    null,
   );
   const [editableData, setEditableData] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,10 +51,10 @@ export function useAnalysis(photoUri?: string) {
   const handleFieldChange = useCallback(
     (field: keyof AnalysisResult, value: string) => {
       setEditableData((prev) =>
-        prev ? ({ ...prev, [field]: value } as AnalysisResult) : prev
+        prev ? ({ ...prev, [field]: value } as AnalysisResult) : prev,
       );
     },
-    []
+    [],
   );
 
   const handleComplete = async (): Promise<boolean> => {

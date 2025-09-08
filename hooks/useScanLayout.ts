@@ -19,26 +19,26 @@ export function useScanLayout() {
     const cameraViewWidth = isSmallScreen
       ? CAMERA_VIEW_WIDTH.small
       : isLargeScreen
-      ? CAMERA_VIEW_WIDTH.large
-      : CAMERA_VIEW_WIDTH.medium;
+        ? CAMERA_VIEW_WIDTH.large
+        : CAMERA_VIEW_WIDTH.medium;
 
     const cameraViewHeight = isSmallScreen
       ? CAMERA_VIEW_HEIGHT.small
       : isLargeScreen
-      ? CAMERA_VIEW_HEIGHT.large
-      : CAMERA_VIEW_HEIGHT.medium;
+        ? CAMERA_VIEW_HEIGHT.large
+        : CAMERA_VIEW_HEIGHT.medium;
 
     const controlBottomOffset = isSmallScreen
       ? CONTROL_BOTTOM_OFFSET.small
       : isLargeScreen
-      ? CONTROL_BOTTOM_OFFSET.large
-      : CONTROL_BOTTOM_OFFSET.medium;
+        ? CONTROL_BOTTOM_OFFSET.large
+        : CONTROL_BOTTOM_OFFSET.medium;
 
     const guideTextRightOffset = isSmallScreen
       ? GUIDE_TEXT_RIGHT_OFFSET.small
       : isLargeScreen
-      ? GUIDE_TEXT_RIGHT_OFFSET.large
-      : GUIDE_TEXT_RIGHT_OFFSET.medium;
+        ? GUIDE_TEXT_RIGHT_OFFSET.large
+        : GUIDE_TEXT_RIGHT_OFFSET.medium;
 
     return {
       isSmallScreen,
