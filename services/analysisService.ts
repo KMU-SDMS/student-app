@@ -1,6 +1,7 @@
 // API Gateway를 통한 이미지 분석 서비스
 // 실제 구현 시에는 API Gateway 엔드포인트로 교체
 import type { AnalysisResult } from "../types/analysis";
+import { logger } from "../utils/logger";
 
 // 모킹 데이터 생성 함수
 const generateMockData = (): AnalysisResult => {
@@ -74,9 +75,13 @@ export const analyzeImage = async (
     */
 
     // 현재는 모킹 데이터 반환
-    return generateMockData();
+    const result = generateMockData();
+    logger.info("이미지 분석 모킹 데이터 반환", { event: "analyzeImage.mock" });
+    return result;
   } catch (error) {
-    console.error("이미지 분석 중 오류 발생:", error);
+    logger.error("이미지 분석 중 오류 발생", error, {
+      event: "analyzeImage.error",
+    });
     throw new Error("이미지 분석에 실패했습니다. 다시 시도해 주세요.");
   }
 };
@@ -104,10 +109,12 @@ export const completeDelivery = async (
     */
 
     // 현재는 성공으로 모킹
-    console.log("수령 완료 처리:", analysisData);
+    logger.info("수령 완료 처리 성공", { event: "completeDelivery.mock" });
     return true;
   } catch (error) {
-    console.error("수령 완료 처리 중 오류 발생:", error);
+    logger.error("수령 완료 처리 중 오류 발생", error, {
+      event: "completeDelivery.error",
+    });
     throw new Error("수령 완료 처리에 실패했습니다. 다시 시도해 주세요.");
   }
 };
