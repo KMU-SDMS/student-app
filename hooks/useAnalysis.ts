@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { analyzeImage, completeDelivery } from "../services/analysisService";
 import type { AnalysisResult } from "../types/analysis";
+import { t } from "../utils/i18n";
 
 export function useAnalysis(photoUri?: string) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -28,7 +29,7 @@ export function useAnalysis(photoUri?: string) {
 
   const loadAnalysis = async () => {
     if (!photoUri) {
-      setError("사진 경로가 없습니다.");
+      setError(t("analysis.photoMissing"));
       setIsLoading(false);
       return;
     }
@@ -41,7 +42,7 @@ export function useAnalysis(photoUri?: string) {
       setEditableData(result);
     } catch (e: any) {
       if (!mountedRef.current) return;
-      setError(e?.message ?? "분석 중 오류가 발생했습니다.");
+      setError(e?.message ?? t("analysis.analyzeError"));
     } finally {
       if (mountedRef.current) setIsLoading(false);
     }
