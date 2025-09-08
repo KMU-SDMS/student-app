@@ -1,5 +1,7 @@
 import React, { memo } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
+import { useColorScheme } from "../../hooks/useColorScheme";
+import { Colors } from "../../constants/Colors";
 import type { KeyboardTypeOptions } from "react-native";
 
 interface TextFieldProps {
@@ -21,6 +23,10 @@ const TextFieldComponent: React.FC<TextFieldProps> = ({
   keyboardType,
   testID,
 }) => {
+  const colorScheme = useColorScheme();
+  const mode: "light" | "dark" = colorScheme === "dark" ? "dark" : "light";
+  const styles = React.useMemo(() => createTextFieldStyles(mode), [mode]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -29,6 +35,7 @@ const TextFieldComponent: React.FC<TextFieldProps> = ({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor={Colors[mode].icon}
         multiline={multiline}
         keyboardType={keyboardType}
         testID={testID}
@@ -41,29 +48,32 @@ TextFieldComponent.displayName = "TextField";
 
 export const TextField = memo(TextFieldComponent);
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#fafafa",
-    color: "#333",
-  },
-  multilineInput: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-});
+const createTextFieldStyles = (mode: "light" | "dark") => {
+  const palette = Colors[mode];
+  return StyleSheet.create({
+    container: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: palette.icon,
+      marginBottom: 6,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: mode === "light" ? "#E5E7EB" : "#2A2E33",
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      backgroundColor: mode === "light" ? "#F6F7F9" : "#1F2123",
+      color: palette.text,
+    },
+    multilineInput: {
+      height: 80,
+      textAlignVertical: "top",
+    },
+  });
+};
 
 export default TextField;

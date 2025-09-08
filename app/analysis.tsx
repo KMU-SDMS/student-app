@@ -18,6 +18,7 @@ import type { KeyboardTypeOptions } from "react-native";
 import { useColorScheme } from "../hooks/useColorScheme";
 import { createAnalysisStyles } from "../styles/analysisStyles";
 import { t } from "../utils/i18n";
+import { Colors } from "../constants/Colors";
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<AnalysisRouteParams>();
@@ -27,6 +28,7 @@ export default function AnalysisScreen() {
   const styles = createAnalysisStyles(
     colorScheme === "dark" ? "dark" : "light"
   );
+  const palette = Colors[colorScheme === "dark" ? "dark" : "light"];
 
   const {
     isLoading,
@@ -137,7 +139,7 @@ export default function AnalysisScreen() {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#2f6ef6" />
+        <ActivityIndicator size="large" color={palette.tint} />
         <Text style={styles.loadingText}>{t("analysis.loading")}</Text>
       </View>
     );

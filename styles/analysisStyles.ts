@@ -6,7 +6,7 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: mode === "light" ? "#f5f5f5" : palette.background,
+      backgroundColor: palette.background,
     },
     center: {
       justifyContent: "center",
@@ -54,28 +54,6 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       color: palette.text,
       marginBottom: 16,
     },
-    fieldGroup: {
-      marginBottom: 16,
-    },
-    fieldLabel: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: mode === "light" ? "#666" : palette.text,
-      marginBottom: 6,
-    },
-    fieldInput: {
-      borderWidth: 1,
-      borderColor: "#ddd",
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
-      backgroundColor: mode === "light" ? "#fafafa" : "#1f2022",
-      color: palette.text,
-    },
-    multilineInput: {
-      height: 80,
-      textAlignVertical: "top",
-    },
     bottomContainer: {
       paddingHorizontal: 16,
       paddingTop: 16,
@@ -84,7 +62,7 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       borderTopColor: "#eee",
     },
     completeButton: {
-      backgroundColor: "#2f6ef6",
+      backgroundColor: palette.tint,
       borderRadius: 12,
       paddingVertical: 16,
       alignItems: "center",
@@ -97,7 +75,7 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
     loadingText: {
       marginTop: 16,
       fontSize: 16,
-      color: mode === "light" ? "#666" : palette.text,
+      color: palette.icon,
     },
     errorText: {
       fontSize: 16,
@@ -106,7 +84,7 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       marginBottom: 16,
     },
     retryButton: {
-      backgroundColor: "#2f6ef6",
+      backgroundColor: palette.tint,
       paddingHorizontal: 24,
       paddingVertical: 12,
       borderRadius: 8,
