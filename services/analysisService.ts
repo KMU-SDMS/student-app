@@ -36,7 +36,7 @@ const generateMockData = (): AnalysisResult => {
     weight: `${(Math.random() * 5 + 0.5).toFixed(1)}kg`,
     deliveryDate: new Date().toISOString().split("T")[0],
     deliveryTime: `${Math.floor(Math.random() * 12) + 9}:${Math.floor(
-      Math.random() * 60
+      Math.random() * 60,
     )
       .toString()
       .padStart(2, "0")}`,
@@ -47,7 +47,7 @@ const generateMockData = (): AnalysisResult => {
 
 // 실제 API 호출 함수 (현재는 모킹)
 export const analyzeImage = async (
-  imageUri: string
+  imageUri: string,
 ): Promise<AnalysisResult> => {
   try {
     // 2초 로딩 시뮬레이션
@@ -83,7 +83,7 @@ export const analyzeImage = async (
 
 // 수령 완료 API (모킹)
 export const completeDelivery = async (
-  analysisData: AnalysisResult
+  analysisData: AnalysisResult,
 ): Promise<boolean> => {
   try {
     // 1초 로딩 시뮬레이션

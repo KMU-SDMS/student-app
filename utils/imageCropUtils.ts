@@ -18,7 +18,7 @@ export interface ImageInfo {
  * @returns orientation이 보정된 이미지 정보
  */
 export const correctImageOrientation = async (
-  imageUri: string
+  imageUri: string,
 ): Promise<ImageInfo> => {
   const { manipulateAsync } = await import("expo-image-manipulator");
 
@@ -29,7 +29,7 @@ export const correctImageOrientation = async (
     {
       format: "jpeg" as any,
       compress: 1.0, // 최고 품질로 보정
-    }
+    },
   );
 
   return {
@@ -53,7 +53,7 @@ export const calculateImageCropArea = (
   cropArea: CropArea,
   cameraViewWidth: number,
   cameraViewHeight: number,
-  insets: { top: number; bottom: number }
+  insets: { top: number; bottom: number },
 ): CropArea => {
   // 카메라 뷰 기준으로 좌표 변환
   const cameraCropArea = {
@@ -102,11 +102,11 @@ export const calculateImageCropArea = (
   return {
     x: Math.max(
       0,
-      Math.min(imageCropArea.x, imageInfo.width - imageCropArea.width)
+      Math.min(imageCropArea.x, imageInfo.width - imageCropArea.width),
     ),
     y: Math.max(
       0,
-      Math.min(imageCropArea.y, imageInfo.height - imageCropArea.height)
+      Math.min(imageCropArea.y, imageInfo.height - imageCropArea.height),
     ),
     width: Math.min(imageCropArea.width, imageInfo.width),
     height: Math.min(imageCropArea.height, imageInfo.height),
@@ -121,7 +121,7 @@ export const calculateImageCropArea = (
  */
 export const validateCropArea = (
   cropArea: CropArea,
-  imageInfo: ImageInfo
+  imageInfo: ImageInfo,
 ): void => {
   if (cropArea.width <= 0 || cropArea.height <= 0) {
     throw new Error("Invalid crop area: width or height is zero or negative");

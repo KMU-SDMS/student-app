@@ -27,7 +27,7 @@ export function useTimedMessage(defaultTimeoutMs: number = 4000) {
         }, ms);
       }
     },
-    [defaultTimeoutMs]
+    [defaultTimeoutMs],
   );
 
   useEffect(() => {
