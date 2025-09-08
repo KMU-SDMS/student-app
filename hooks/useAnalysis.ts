@@ -13,21 +13,15 @@ export function useAnalysis(photoUri?: string) {
 
   const mountedRef = useRef(true);
 
+  // 마운트/언마운트 시점 플래그 관리
   useEffect(() => {
     mountedRef.current = true;
-    if (photoUri) {
-      // 초기 로드
-      loadAnalysis();
-    } else {
-      setIsLoading(false);
-    }
     return () => {
       mountedRef.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photoUri]);
+  }, []);
 
-  const loadAnalysis = async () => {
+  const loadAnalysis = useCallback(async () => {
     if (!photoUri) {
       setError(t("analysis.photoMissing"));
       setIsLoading(false);
@@ -46,7 +40,16 @@ export function useAnalysis(photoUri?: string) {
     } finally {
       if (mountedRef.current) setIsLoading(false);
     }
-  };
+  }, [photoUri]);
+
+  // photoUri 변경 시 초기 로드 트리거
+  useEffect(() => {
+    if (photoUri) {
+      loadAnalysis();
+    } else {
+      setIsLoading(false);
+    }
+  }, [photoUri, loadAnalysis]);
 
   const handleFieldChange = useCallback(
     (field: keyof AnalysisResult, value: string) => {
