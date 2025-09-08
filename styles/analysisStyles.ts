@@ -1,7 +1,7 @@
-import { StyleSheet } from "react-native";
-import { Colors } from "../constants/Colors";
+import { StyleSheet } from 'react-native';
+import { Colors } from '../constants/Colors';
 
-export const createAnalysisStyles = (mode: "light" | "dark") => {
+export const createAnalysisStyles = (mode: 'light' | 'dark') => {
   const palette = Colors[mode];
   return StyleSheet.create({
     container: {
@@ -9,8 +9,8 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       backgroundColor: palette.background,
     },
     center: {
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     scrollView: {
       flex: 1,
@@ -18,9 +18,9 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
     imageContainer: {
       margin: 16,
       borderRadius: 12,
-      overflow: "hidden",
+      overflow: 'hidden',
       backgroundColor: palette.background,
-      shadowColor: "#000",
+      shadowColor: '#000',
       shadowOffset: {
         width: 0,
         height: 2,
@@ -30,16 +30,16 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       elevation: 3,
     },
     capturedImage: {
-      width: "100%",
+      width: '100%',
       height: 200,
-      resizeMode: "cover",
+      resizeMode: 'cover',
     },
     analysisContainer: {
       margin: 16,
       backgroundColor: palette.background,
       borderRadius: 12,
       padding: 16,
-      shadowColor: "#000",
+      shadowColor: '#000',
       shadowOffset: {
         width: 0,
         height: 2,
@@ -50,7 +50,7 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       color: palette.text,
       marginBottom: 16,
     },
@@ -59,18 +59,18 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       paddingTop: 16,
       backgroundColor: palette.background,
       borderTopWidth: 1,
-      borderTopColor: "#eee",
+      borderTopColor: '#eee',
     },
     completeButton: {
       backgroundColor: palette.tint,
       borderRadius: 12,
       paddingVertical: 16,
-      alignItems: "center",
+      alignItems: 'center',
     },
     completeButtonText: {
-      color: "#fff",
+      color: '#fff',
       fontSize: 16,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     loadingText: {
       marginTop: 16,
@@ -79,8 +79,8 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
     },
     errorText: {
       fontSize: 16,
-      color: "#ff6b6b",
-      textAlign: "center",
+      color: '#ff6b6b',
+      textAlign: 'center',
       marginBottom: 16,
     },
     retryButton: {
@@ -90,9 +90,9 @@ export const createAnalysisStyles = (mode: "light" | "dark") => {
       borderRadius: 8,
     },
     retryButtonText: {
-      color: "#fff",
+      color: '#fff',
       fontSize: 16,
-      fontWeight: "600",
+      fontWeight: '600',
     },
   });
 };

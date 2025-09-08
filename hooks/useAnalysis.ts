@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { analyzeImage, completeDelivery } from "../services/analysisService";
-import type { AnalysisResult } from "../types/analysis";
-import { t } from "../utils/i18n";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { analyzeImage, completeDelivery } from '../services/analysisService';
+import type { AnalysisResult } from '../types/analysis';
+import { t } from '../utils/i18n';
 
 export function useAnalysis(photoUri?: string) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
-    null,
-  );
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [editableData, setEditableData] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +27,7 @@ export function useAnalysis(photoUri?: string) {
 
   const loadAnalysis = async () => {
     if (!photoUri) {
-      setError(t("analysis.photoMissing"));
+      setError(t('analysis.photoMissing'));
       setIsLoading(false);
       return;
     }
@@ -42,20 +40,15 @@ export function useAnalysis(photoUri?: string) {
       setEditableData(result);
     } catch (e: any) {
       if (!mountedRef.current) return;
-      setError(e?.message ?? t("analysis.analyzeError"));
+      setError(e?.message ?? t('analysis.analyzeError'));
     } finally {
       if (mountedRef.current) setIsLoading(false);
     }
   };
 
-  const handleFieldChange = useCallback(
-    (field: keyof AnalysisResult, value: string) => {
-      setEditableData((prev) =>
-        prev ? ({ ...prev, [field]: value } as AnalysisResult) : prev,
-      );
-    },
-    [],
-  );
+  const handleFieldChange = useCallback((field: keyof AnalysisResult, value: string) => {
+    setEditableData((prev) => (prev ? ({ ...prev, [field]: value } as AnalysisResult) : prev));
+  }, []);
 
   const handleComplete = async (): Promise<boolean> => {
     if (!editableData) return false;

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useCameraPermissions } from "expo-camera";
+import { useEffect } from 'react';
+import { useCameraPermissions } from 'expo-camera';
 
 /**
  * 카메라 권한을 관리하는 커스텀 훅

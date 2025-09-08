@@ -1,5 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Clipboard, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Clipboard,
+  ScrollView,
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,35 +31,38 @@ export default function PaymentScreen() {
   const router = useRouter();
 
   const handlePaymentComplete = () => {
-    Alert.alert(
-      "납부 처리 완료",
-      "납부 완료 처리되었습니다. 홈 화면으로 이동합니다.",
-      [
-        { text: "확인", onPress: () => router.push('/') }
-      ]
-    );
+    Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다. 홈 화면으로 이동합니다.', [
+      { text: '확인', onPress: () => router.push('/') },
+    ]);
   };
 
   const copyToClipboard = (text: string) => {
     Clipboard.setString(text);
-    Alert.alert("계좌번호 복사", `${text}가 클립보드에 복사되었습니다.`);
+    Alert.alert('계좌번호 복사', `${text}가 클립보드에 복사되었습니다.`);
   };
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       {/* 뒤로가기 버튼 */}
-      <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { top: insets.top + 10 }]}>
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={[styles.backButton, { top: insets.top + 10 }]}
+      >
         <View style={styles.backButtonCircle}>
-            <Text style={styles.backButtonText}>‹</Text>
+          <Text style={styles.backButtonText}>‹</Text>
         </View>
       </TouchableOpacity>
 
       {/* 메인 콘텐츠 */}
       <ScrollView style={styles.contentScroll} contentContainerStyle={styles.contentContainer}>
-        <ThemedText type="title" style={styles.title}>관리비 납부</ThemedText>
+        <ThemedText type="title" style={styles.title}>
+          관리비 납부
+        </ThemedText>
 
         <View style={styles.card}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>이번 달 관리비</ThemedText>
+          <ThemedText type="subtitle" style={styles.cardTitle}>
+            이번 달 관리비
+          </ThemedText>
           <View style={styles.infoRow}>
             <ThemedText style={styles.label}>청구일</ThemedText>
             <ThemedText style={styles.value}>{paymentDetails.issueDate}</ThemedText>
@@ -67,9 +78,15 @@ export default function PaymentScreen() {
         </View>
 
         <View style={styles.card}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>입금 계좌 안내</ThemedText>
+          <ThemedText type="subtitle" style={styles.cardTitle}>
+            입금 계좌 안내
+          </ThemedText>
           {bankAccounts.map((account, index) => (
-            <TouchableOpacity key={index} onPress={() => copyToClipboard(account.number)} style={styles.accountRow}>
+            <TouchableOpacity
+              key={index}
+              onPress={() => copyToClipboard(account.number)}
+              style={styles.accountRow}
+            >
               <ThemedText style={styles.bankName}>{account.bank}</ThemedText>
               <View style={styles.accountNumberContainer}>
                 <ThemedText style={styles.accountNumber}>{account.number}</ThemedText>
@@ -81,7 +98,9 @@ export default function PaymentScreen() {
       </ScrollView>
 
       {/* 하단 버튼 */}
-      <View style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}>
+      <View
+        style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}
+      >
         <TouchableOpacity style={styles.button} onPress={handlePaymentComplete}>
           <Text style={styles.buttonText}>납부 완료</Text>
         </TouchableOpacity>
@@ -107,30 +126,30 @@ const styles = StyleSheet.create({
     marginBottom: 24, // 제목과 카드 사이의 여백
   },
   backButton: {
-      position: 'absolute',
-      left: 20,
-      zIndex: 1,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   backButtonCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-      justifyContent: 'center',
-      alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButtonText: {
-      color: '#000',
-      fontSize: 24,
-      fontWeight: 'bold',
-      lineHeight: 40,
+    color: '#000',
+    fontSize: 24,
+    fontWeight: 'bold',
+    lineHeight: 40,
   },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,

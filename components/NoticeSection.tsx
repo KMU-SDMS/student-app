@@ -54,15 +54,12 @@ export default function NoticeSection() {
           <ThemedText style={styles.moreText}>더보기</ThemedText>
         </TouchableOpacity>
       </View>
-      
+
       <ScrollView style={styles.noticeList} showsVerticalScrollIndicator={false}>
         {mockNotices.map((notice) => (
           <TouchableOpacity
             key={notice.id}
-            style={[
-              styles.noticeItem,
-              notice.isImportant && styles.importantNotice,
-            ]}
+            style={[styles.noticeItem, notice.isImportant && styles.importantNotice]}
             onPress={() => toggleExpanded(notice.id)}
           >
             <View style={styles.noticeHeader}>
@@ -78,12 +75,10 @@ export default function NoticeSection() {
               </View>
               <ThemedText style={styles.noticeDate}>{notice.date}</ThemedText>
             </View>
-            
+
             {expandedNotice === notice.id && (
               <View style={styles.noticeContent}>
-                <ThemedText style={styles.contentText}>
-                  {notice.content}
-                </ThemedText>
+                <ThemedText style={styles.contentText}>{notice.content}</ThemedText>
               </View>
             )}
           </TouchableOpacity>

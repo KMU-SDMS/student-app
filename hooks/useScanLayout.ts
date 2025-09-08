@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useWindowDimensions } from "react-native";
+import { useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
 import {
   SMALL_SCREEN_HEIGHT_THRESHOLD,
   LARGE_SCREEN_HEIGHT_THRESHOLD,
@@ -7,7 +7,7 @@ import {
   CAMERA_VIEW_HEIGHT,
   CONTROL_BOTTOM_OFFSET,
   GUIDE_TEXT_RIGHT_OFFSET,
-} from "../constants/layoutConstants";
+} from '../constants/layoutConstants';
 
 export function useScanLayout() {
   const { height: windowHeight } = useWindowDimensions();

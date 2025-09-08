@@ -25,7 +25,8 @@ export default function TabLayout() {
           },
           default: {},
         }),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -37,7 +38,9 @@ export default function TabLayout() {
         name="scan"
         options={{
           title: 'Scan',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="camera.viewfinder" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="camera.viewfinder" color={color} />
+          ),
         }}
       />
       {/* Explore 탭 제거 */}

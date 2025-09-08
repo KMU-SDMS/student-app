@@ -1,17 +1,17 @@
-import React, { useCallback, useState } from "react";
-import { View, TouchableOpacity, Text } from "react-native";
-import { CameraView } from "expo-camera";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCameraPermission } from "../../hooks/useCameraPermission";
-import { ERROR_MESSAGE_TIMEOUT } from "../../constants/cameraConstants";
-import { scanStyles } from "../../styles/scanStyles";
-import { CameraControls } from "../../components/CameraControls";
-import { useScanLayout } from "../../hooks/useScanLayout";
-import { t } from "../../utils/i18n";
-import { useCameraCapture } from "../../hooks/useCameraCapture";
-import { useTimedMessage } from "../../hooks/useTimedMessage";
+import React, { useCallback, useState } from 'react';
+import { View, TouchableOpacity, Text } from 'react-native';
+import { CameraView } from 'expo-camera';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCameraPermission } from '../../hooks/useCameraPermission';
+import { ERROR_MESSAGE_TIMEOUT } from '../../constants/cameraConstants';
+import { scanStyles } from '../../styles/scanStyles';
+import { CameraControls } from '../../components/CameraControls';
+import { useScanLayout } from '../../hooks/useScanLayout';
+import { t } from '../../utils/i18n';
+import { useCameraCapture } from '../../hooks/useCameraCapture';
+import { useTimedMessage } from '../../hooks/useTimedMessage';
 
 export default function ScanTabScreen() {
   const {
@@ -33,8 +33,7 @@ export default function ScanTabScreen() {
     show: showMessage,
     clear: clearMessage,
   } = useTimedMessage(ERROR_MESSAGE_TIMEOUT);
-  const { cameraViewWidth, cameraViewHeight, controlBottomOffset } =
-    useScanLayout();
+  const { cameraViewWidth, cameraViewHeight, controlBottomOffset } = useScanLayout();
   useFocusEffect(
     React.useCallback(() => {
       setIsFocused(true);
@@ -45,12 +44,12 @@ export default function ScanTabScreen() {
         setTorchOn(false);
         setCameraReady(false);
       };
-    }, [])
+    }, []),
   );
 
   const handleCapture = useCallback(async () => {
     if (!isCameraReady || !isFocused) {
-      showMessage(t("scan.cameraNotReady"), 1500);
+      showMessage(t('scan.cameraNotReady'), 1500);
       return;
     }
     await capture();
@@ -58,7 +57,7 @@ export default function ScanTabScreen() {
 
   const handleToggleTorch = useCallback(() => {
     if (!isCameraReady || !isFocused) {
-      showMessage(t("scan.cameraNotReady"), 1500);
+      showMessage(t('scan.cameraNotReady'), 1500);
       return;
     }
     setTorchOn((v) => !v);
@@ -73,11 +72,8 @@ export default function ScanTabScreen() {
   if (isLoading) {
     return (
       <View style={scanStyles.center}>
-        <Text
-          accessibilityRole="text"
-          accessibilityLabel={t("scan.loadingPermission")}
-        >
-          {t("scan.loadingPermission")}
+        <Text accessibilityRole="text" accessibilityLabel={t('scan.loadingPermission')}>
+          {t('scan.loadingPermission')}
         </Text>
       </View>
     );
@@ -86,22 +82,17 @@ export default function ScanTabScreen() {
   if (!isGranted) {
     return (
       <View style={scanStyles.center}>
-        <Text
-          accessibilityRole="text"
-          accessibilityLabel={t("scan.permissionRequired")}
-        >
-          {t("scan.permissionRequired")}
+        <Text accessibilityRole="text" accessibilityLabel={t('scan.permissionRequired')}>
+          {t('scan.permissionRequired')}
         </Text>
         <TouchableOpacity
           style={scanStyles.primaryButton}
           onPress={requestPermission}
           accessibilityRole="button"
-          accessibilityLabel={t("scan.allowPermission")}
-          accessibilityHint={t("scan.allowPermissionHint")}
+          accessibilityLabel={t('scan.allowPermission')}
+          accessibilityHint={t('scan.allowPermissionHint')}
         >
-          <Text style={scanStyles.primaryText}>
-            {t("scan.allowPermission")}
-          </Text>
+          <Text style={scanStyles.primaryText}>{t('scan.allowPermission')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -135,17 +126,17 @@ export default function ScanTabScreen() {
                 right: 0,
                 top: 0,
                 bottom: 0,
-                alignItems: "center",
-                justifyContent: "center",
+                alignItems: 'center',
+                justifyContent: 'center',
               },
             ]}
           >
             <Text
               style={scanStyles.guideText}
               accessibilityRole="text"
-              accessibilityLabel={t("scan.guideText")}
+              accessibilityLabel={t('scan.guideText')}
             >
-              {t("scan.guideText")}
+              {t('scan.guideText')}
             </Text>
           </View>
         </View>

@@ -9,150 +9,147 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  
+
   const today = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  
+
   // 해당 월의 첫 번째 날과 마지막 날
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const firstDayOfWeek = firstDay.getDay(); // 0: 일요일, 1: 월요일, ...
-  
+
   // 월요일인지 확인하는 함수
   const isMonday = (date: Date) => {
     return date.getDay() === 1;
   };
-  
+
   // 오늘인지 확인하는 함수
   const isToday = (date: Date) => {
     return date.toDateString() === today.toDateString();
   };
-  
+
   // 해당 날짜에 일반 점호가 있는지 확인하는 함수
   const hasRegularRollCall = (date: Date) => {
     return isMonday(date);
   };
-  
+
   // 해당 날짜에 청소 점호가 있는지 확인하는 함수 (격주 월요일)
   const hasCleaningRollCall = (date: Date) => {
     if (!isMonday(date)) return false;
-    
+
     // 2024년 1월 1일을 기준으로 격주 계산
     const baseDate = new Date(2024, 0, 1); // 2024년 1월 1일
     const timeDiff = date.getTime() - baseDate.getTime();
     const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
     const weeksDiff = Math.floor(daysDiff / 7);
-    
+
     // 홀수 주차에 청소 점호
     return weeksDiff % 2 === 1;
   };
-  
+
   // 이전 달로 이동
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
   };
-  
+
   // 다음 달로 이동
   const goToNextMonth = () => {
     setCurrentDate(new Date(year, month + 1, 1));
   };
-  
+
   // 날짜 선택
   const selectDate = (day: number) => {
     const selectedDate = new Date(year, month, day);
     onDateSelect?.(selectedDate);
   };
-  
+
   // 달력 날짜들 생성
   const renderCalendarDays = () => {
     const days = [];
     const daysInMonth = lastDay.getDate();
-    
+
     // 빈 칸들 (이전 달의 마지막 주)
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.push(
         <View key={`empty-${i}`} style={styles.dayContainer}>
           <Text style={styles.emptyDay}></Text>
-        </View>
+        </View>,
       );
     }
-    
+
     // 해당 월의 날짜들
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const isTodayDay = isToday(date);
       const hasRegular = hasRegularRollCall(date);
       const hasCleaning = hasCleaningRollCall(date);
-      
+
       days.push(
-        <TouchableOpacity
-          key={day}
-          style={styles.dayContainer}
-          onPress={() => selectDate(day)}
-        >
+        <TouchableOpacity key={day} style={styles.dayContainer} onPress={() => selectDate(day)}>
           <View style={isTodayDay ? styles.todayContainer : undefined}>
-            <Text style={[
-              styles.dayText,
-              isTodayDay && styles.todayText
-            ]}>
-              {day}
-            </Text>
+            <Text style={[styles.dayText, isTodayDay && styles.todayText]}>{day}</Text>
           </View>
-          {hasRegular && !hasCleaning && (
-            <View style={styles.regularRollCallDot} />
-          )}
-          {hasCleaning && (
-            <View style={styles.cleaningRollCallDot} />
-          )}
-        </TouchableOpacity>
+          {hasRegular && !hasCleaning && <View style={styles.regularRollCallDot} />}
+          {hasCleaning && <View style={styles.cleaningRollCallDot} />}
+        </TouchableOpacity>,
       );
     }
-    
+
     return days;
   };
-  
+
   const monthNames = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월'
+    '1월',
+    '2월',
+    '3월',
+    '4월',
+    '5월',
+    '6월',
+    '7월',
+    '8월',
+    '9월',
+    '10월',
+    '11월',
+    '12월',
   ];
-  
+
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-  
+
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
           <Text style={styles.navButtonText}>‹</Text>
         </TouchableOpacity>
-        
+
         <ThemedText style={styles.monthYear}>
           {year}년 {monthNames[month]}
         </ThemedText>
-        
+
         <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
           <Text style={styles.navButtonText}>›</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.weekDaysContainer}>
         {weekDays.map((day, index) => (
           <View key={day} style={styles.weekDayContainer}>
-            <Text style={[
-              styles.weekDayText,
-              index === 0 && styles.sundayText,
-              index === 1 && styles.mondayText
-            ]}>
+            <Text
+              style={[
+                styles.weekDayText,
+                index === 0 && styles.sundayText,
+                index === 1 && styles.mondayText,
+              ]}
+            >
               {day}
             </Text>
           </View>
         ))}
       </View>
-      
-      <View style={styles.calendarGrid}>
-        {renderCalendarDays()}
-      </View>
-      
+
+      <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
+
       <View style={styles.legend}>
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
