@@ -27,3 +27,8 @@ React Native 앱으로 Expo를 사용하여 개발된 프로젝트입니다.
 - Expo
 - TypeScript
 - React Navigation
+
+## 테스트
+```bash
+   npx expo start
+   ```
