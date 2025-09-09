@@ -1,47 +1,82 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useRouter } from 'expo-router';
-
-interface Notice {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-  isImportant: boolean;
-}
-
-const mockNotices: Notice[] = [
-  {
-    id: 1,
-    title: '앱 업데이트 안내',
-    content: '새로운 기능이 추가되었습니다. 자세한 내용은 설정에서 확인해주세요.',
-    date: '2024-01-15',
-    isImportant: true,
-  },
-  {
-    id: 2,
-    title: '서비스 점검 안내',
-    content: '1월 20일 오전 2시~4시 서비스 점검이 예정되어 있습니다.',
-    date: '2024-01-10',
-    isImportant: false,
-  },
-  {
-    id: 3,
-    title: '이벤트 공지',
-    content: '신규 사용자 대상 이벤트가 진행 중입니다. 많은 참여 부탁드립니다.',
-    date: '2024-01-05',
-    isImportant: false,
-  },
-];
+import { getNotices } from '@/services/apiService';
+import { Notice } from '@/types/notice';
 
 export default function NoticeSection() {
   const [expandedNotice, setExpandedNotice] = useState<number | null>(null);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        const allNotices = await getNotices();
+        setNotices(allNotices.slice(0, 3));
+      } catch (error) {
+        console.error('Failed to fetch notices for NoticeSection:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchNotices();
+  }, []);
 
   const toggleExpanded = (id: number) => {
     setExpandedNotice(expandedNotice === id ? null : id);
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <ActivityIndicator style={styles.centered} />;
+    }
+    if (notices.length === 0) {
+      return (
+        <ThemedText style={styles.emptyText}>
+          등록된 공지사항이 없습니다.
+        </ThemedText>
+      );
+    }
+    return notices.map((notice) => (
+      <TouchableOpacity
+        key={notice.id}
+        style={[styles.noticeItem, notice.is_important && styles.importantNotice]}
+        onPress={() => toggleExpanded(notice.id)}
+      >
+        <View style={styles.noticeHeader}>
+          <View style={styles.noticeTitleContainer}>
+            {notice.is_important && (
+              <View style={styles.importantBadge}>
+                <Text style={styles.importantText}>중요</Text>
+              </View>
+            )}
+            <ThemedText style={styles.noticeTitle} numberOfLines={1}>
+              {notice.title}
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.noticeDate}>
+            {new Date(notice.created_at).toLocaleDateString()}
+          </ThemedText>
+        </View>
+
+        {expandedNotice === notice.id && (
+          <View style={styles.noticeContent}>
+            <ThemedText style={styles.contentText}>{notice.content}</ThemedText>
+          </View>
+        )}
+      </TouchableOpacity>
+    ));
   };
 
   return (
@@ -50,39 +85,16 @@ export default function NoticeSection() {
         <ThemedText type="subtitle" style={styles.title}>
           공지사항
         </ThemedText>
-        <TouchableOpacity style={styles.moreButton} onPress={() => router.push('/notices')}>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => router.push('/notices')}
+        >
           <ThemedText style={styles.moreText}>더보기</ThemedText>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.noticeList} showsVerticalScrollIndicator={false}>
-        {mockNotices.map((notice) => (
-          <TouchableOpacity
-            key={notice.id}
-            style={[styles.noticeItem, notice.isImportant && styles.importantNotice]}
-            onPress={() => toggleExpanded(notice.id)}
-          >
-            <View style={styles.noticeHeader}>
-              <View style={styles.noticeTitleContainer}>
-                {notice.isImportant && (
-                  <View style={styles.importantBadge}>
-                    <Text style={styles.importantText}>중요</Text>
-                  </View>
-                )}
-                <ThemedText style={styles.noticeTitle} numberOfLines={1}>
-                  {notice.title}
-                </ThemedText>
-              </View>
-              <ThemedText style={styles.noticeDate}>{notice.date}</ThemedText>
-            </View>
-
-            {expandedNotice === notice.id && (
-              <View style={styles.noticeContent}>
-                <ThemedText style={styles.contentText}>{notice.content}</ThemedText>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
+        {renderContent()}
       </ScrollView>
     </ThemedView>
   );
@@ -112,7 +124,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   noticeList: {
-    maxHeight: 300,
+    minHeight: 100, // Set a min height to ensure the empty message is visible
+  },
+  centered: {
+    paddingVertical: 20,
+  },
+  emptyText: {
+    textAlign: 'center',
+    paddingVertical: 20,
+    opacity: 0.6,
   },
   noticeItem: {
     backgroundColor: 'rgba(0,0,0,0.05)',
