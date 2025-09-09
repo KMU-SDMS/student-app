@@ -52,7 +52,7 @@ export default function NoticesScreen() {
           </ThemedText>
         </View>
         <ThemedText style={styles.noticeDate}>
-          {new Date(item.created_at).toLocaleDateString()}
+          {new Date(item.date).toISOString().split('T')[0]}
         </ThemedText>
       </View>
       <View style={styles.noticeContent}>

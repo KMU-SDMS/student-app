@@ -2,6 +2,6 @@ export interface Notice {
   id: number;
   title: string;
   content: string;
-  created_at: string;
+  date: string;
   is_important: boolean;
 }

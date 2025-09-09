@@ -66,7 +66,7 @@ export default function NoticeSection() {
             </ThemedText>
           </View>
           <ThemedText style={styles.noticeDate}>
-            {new Date(notice.created_at).toLocaleDateString()}
+            {new Date(notice.date).toISOString().split('T')[0]}
           </ThemedText>
         </View>
 
