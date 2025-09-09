@@ -1,73 +1,48 @@
-import React from 'react';
-import { StyleSheet, View, FlatList, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-
-// 더 많은 공지사항을 위한 목 데이터
-const allNotices = [
-  {
-    id: 1,
-    title: '앱 업데이트 안내',
-    date: '2024-01-15',
-    isImportant: true,
-    content: '새로운 기능이 추가되었습니다. 자세한 내용은 설정에서 확인해주세요.',
-  },
-  {
-    id: 2,
-    title: '서비스 점검 안내',
-    date: '2024-01-10',
-    isImportant: false,
-    content: '1월 20일 오전 2시~4시 서비스 점검이 예정되어 있습니다.',
-  },
-  {
-    id: 3,
-    title: '이벤트 공지',
-    date: '2024-01-05',
-    isImportant: false,
-    content: '신규 사용자 대상 이벤트가 진행 중입니다. 많은 참여 부탁드립니다.',
-  },
-  {
-    id: 4,
-    title: '동계 방학 중 기숙사 운영 안내',
-    date: '2023-12-20',
-    isImportant: true,
-    content:
-      '동계 방학 기간 중 기숙사 운영 시간을 안내드립니다. 자세한 내용은 공지를 확인해주세요.',
-  },
-  {
-    id: 5,
-    title: '분실물 찾아가세요',
-    date: '2023-12-18',
-    isImportant: false,
-    content: '학생회관 1층에서 보관 중인 분실물 목록입니다. 기간 내에 찾아가시길 바랍니다.',
-  },
-  {
-    id: 6,
-    title: '기숙사 만족도 조사 참여 요청',
-    date: '2023-12-15',
-    isImportant: false,
-    content: '기숙사 운영 개선을 위한 만족도 조사를 실시합니다. 많은 참여 부탁드립니다.',
-  },
-  {
-    id: 7,
-    title: '연말 소등 행사 안내',
-    date: '2023-12-12',
-    isImportant: false,
-    content: '12월 31일 23시 50분부터 10분간 전체 소등 행사가 진행됩니다.',
-  },
-];
+import { getNotices } from '@/services/apiService';
+import { Notice } from '@/types/notice';
 
 export default function NoticesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const renderItem = ({ item }: { item: (typeof allNotices)[0] }) => (
-    <View style={[styles.noticeItem, item.isImportant && styles.importantNotice]}>
+  useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        const data = await getNotices();
+        setNotices(data);
+      } catch (error) {
+        console.error('Failed to fetch notices:', error);
+        // Optionally, set an error state to show a message to the user
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotices();
+  }, []);
+
+  const renderItem = ({ item }: { item: Notice }) => (
+    <View
+      style={[styles.noticeItem, item.is_important && styles.importantNotice]}
+    >
       <View style={styles.noticeHeader}>
         <View style={styles.noticeTitleContainer}>
-          {item.isImportant && (
+          {item.is_important && (
             <View style={styles.importantBadge}>
               <Text style={styles.importantText}>중요</Text>
             </View>
@@ -76,7 +51,9 @@ export default function NoticesScreen() {
             {item.title}
           </ThemedText>
         </View>
-        <ThemedText style={styles.noticeDate}>{item.date}</ThemedText>
+        <ThemedText style={styles.noticeDate}>
+          {new Date(item.date).toISOString().split('T')[0]}
+        </ThemedText>
       </View>
       <View style={styles.noticeContent}>
         <ThemedText style={styles.contentText}>{item.content}</ThemedText>
@@ -84,10 +61,24 @@ export default function NoticesScreen() {
     </View>
   );
 
-  return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <ActivityIndicator size="large" style={styles.loadingIndicator} />
+      );
+    }
+
+    if (notices.length === 0) {
+      return (
+        <ThemedText style={styles.emptyText}>
+          등록된 공지사항이 없습니다.
+        </ThemedText>
+      );
+    }
+
+    return (
       <FlatList
-        data={allNotices}
+        data={notices}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
@@ -97,6 +88,12 @@ export default function NoticesScreen() {
           </ThemedText>
         )}
       />
+    );
+  };
+
+  return (
+    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {renderContent()}
       <TouchableOpacity
         onPress={() => router.back()}
         style={[styles.backButton, { top: insets.top + 10 }]}
@@ -121,6 +118,16 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+  },
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
   },
   backButton: {
     position: 'absolute',
