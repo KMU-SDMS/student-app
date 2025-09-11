@@ -67,8 +67,25 @@ export default function NoticesScreen() {
     fetchNotices(1, false);
   };
 
+  const handleNoticePress = (notice: Notice) => {
+    router.push({
+      pathname: '/notice-detail',
+      params: {
+        id: notice.id.toString(),
+        title: notice.title,
+        content: notice.content,
+        date: notice.date,
+        is_important: notice.is_important.toString(),
+      },
+    });
+  };
+
   const renderItem = ({ item }: { item: Notice }) => (
-    <View style={[styles.noticeItem, item.is_important && styles.importantNotice]}>
+    <TouchableOpacity 
+      style={[styles.noticeItem, item.is_important && styles.importantNotice]}
+      onPress={() => handleNoticePress(item)}
+      activeOpacity={0.7}
+    >
       <View style={styles.noticeHeader}>
         <View style={styles.noticeTitleContainer}>
           {item.is_important && (
@@ -76,7 +93,7 @@ export default function NoticesScreen() {
               <Text style={styles.importantText}>중요</Text>
             </View>
           )}
-          <ThemedText style={styles.noticeTitle} numberOfLines={1}>
+          <ThemedText style={styles.noticeTitle} numberOfLines={2}>
             {item.title}
           </ThemedText>
         </View>
@@ -84,10 +101,7 @@ export default function NoticesScreen() {
           {new Date(item.date).toISOString().split('T')[0]}
         </ThemedText>
       </View>
-      <View style={styles.noticeContent}>
-        <ThemedText style={styles.contentText}>{item.content}</ThemedText>
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderContent = () => {
@@ -203,8 +217,7 @@ const styles = StyleSheet.create({
   noticeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    alignItems: 'center',
   },
   noticeTitleContainer: {
     flex: 1,
@@ -232,16 +245,6 @@ const styles = StyleSheet.create({
   noticeDate: {
     fontSize: 12,
     opacity: 0.7,
-  },
-  noticeContent: {
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-  },
-  contentText: {
-    fontSize: 14,
-    lineHeight: 20,
-    opacity: 0.8,
   },
   loadingMoreIndicator: {
     paddingVertical: 20,

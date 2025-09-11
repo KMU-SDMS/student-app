@@ -14,7 +14,6 @@ import { getNotices } from '@/services/apiService';
 import { Notice } from '@/types/notice';
 
 export default function NoticeSection() {
-  const [expandedNotice, setExpandedNotice] = useState<number | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -33,8 +32,17 @@ export default function NoticeSection() {
     fetchNotices();
   }, []);
 
-  const toggleExpanded = (id: number) => {
-    setExpandedNotice(expandedNotice === id ? null : id);
+  const handleNoticePress = (notice: Notice) => {
+    router.push({
+      pathname: '/notice-detail',
+      params: {
+        id: notice.id.toString(),
+        title: notice.title,
+        content: notice.content,
+        date: notice.date,
+        is_important: notice.is_important.toString(),
+      },
+    });
   };
 
   const renderContent = () => {
@@ -48,7 +56,8 @@ export default function NoticeSection() {
       <TouchableOpacity
         key={notice.id}
         style={[styles.noticeItem, notice.is_important && styles.importantNotice]}
-        onPress={() => toggleExpanded(notice.id)}
+        onPress={() => handleNoticePress(notice)}
+        activeOpacity={0.7}
       >
         <View style={styles.noticeHeader}>
           <View style={styles.noticeTitleContainer}>
@@ -57,7 +66,7 @@ export default function NoticeSection() {
                 <Text style={styles.importantText}>중요</Text>
               </View>
             )}
-            <ThemedText style={styles.noticeTitle} numberOfLines={1}>
+            <ThemedText style={styles.noticeTitle} numberOfLines={2}>
               {notice.title}
             </ThemedText>
           </View>
@@ -65,12 +74,6 @@ export default function NoticeSection() {
             {new Date(notice.date).toISOString().split('T')[0]}
           </ThemedText>
         </View>
-
-        {expandedNotice === notice.id && (
-          <View style={styles.noticeContent}>
-            <ThemedText style={styles.contentText}>{notice.content}</ThemedText>
-          </View>
-        )}
       </TouchableOpacity>
     ));
   };
@@ -170,16 +173,5 @@ const styles = StyleSheet.create({
   noticeDate: {
     fontSize: 12,
     opacity: 0.6,
-  },
-  noticeContent: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  contentText: {
-    fontSize: 13,
-    lineHeight: 18,
-    opacity: 0.8,
   },
 });
