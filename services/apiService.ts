@@ -2,10 +2,10 @@ import { Notice } from '../types/notice';
 
 const BASE_URL = 'https://12y69ifvh1.execute-api.ap-northeast-2.amazonaws.com';
 
-// The API now returns a direct array of notices.
-export const getNotices = async (): Promise<Notice[]> => {
+// 페이지네이션된 공지사항 조회
+export const getNotices = async (page: number = 1): Promise<Notice[]> => {
   try {
-    const response = await fetch(`${BASE_URL}/notices`);
+    const response = await fetch(`${BASE_URL}/notices?page=${page}`);
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -17,14 +17,18 @@ export const getNotices = async (): Promise<Notice[]> => {
       throw new Error(`Failed to fetch notices with status: ${response.status}`);
     }
 
-    // The response is the array of notices directly.
-    const notices: Notice[] = await response.json();
-    console.log('Received notices from API:', notices);
+    const result = await response.json();
+    console.log('Received notices from API:', result);
 
-    // Sort notices by date in descending order
-    return notices.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    // API 응답이 { status: "success", data: [...] } 형태인지 확인
+    if (result.status === 'success' && Array.isArray(result.data)) {
+      return result.data;
+    } else if (Array.isArray(result)) {
+      // 기존 형태의 배열 응답도 지원
+      return result;
+    } else {
+      throw new Error('Unexpected API response format');
+    }
   } catch (error) {
     console.error('Error in getNotices function:', error);
     // Return empty array on failure to prevent app crash and show empty state

@@ -19,27 +19,56 @@ export default function NoticesScreen() {
   const router = useRouter();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMorePages, setHasMorePages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const fetchNotices = async (page: number = 1, append: boolean = false) => {
+    try {
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+      
+      const data = await getNotices(page);
+      
+      if (append) {
+        setNotices(prev => [...prev, ...data]);
+      } else {
+        setNotices(data);
+      }
+      
+      // 페이지당 10개 고정이므로 10개 미만이면 더 이상 페이지가 없음
+      setHasMorePages(data.length === 10);
+    } catch (error) {
+      console.error('Failed to fetch notices:', error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchNotices = async () => {
-      try {
-        const data = await getNotices();
-        setNotices(data);
-      } catch (error) {
-        console.error('Failed to fetch notices:', error);
-        // Optionally, set an error state to show a message to the user
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotices();
+    fetchNotices(1, false);
   }, []);
 
+  const loadMoreNotices = () => {
+    if (!isLoadingMore && hasMorePages) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchNotices(nextPage, true);
+    }
+  };
+
+  const refreshNotices = () => {
+    setCurrentPage(1);
+    setHasMorePages(true);
+    fetchNotices(1, false);
+  };
+
   const renderItem = ({ item }: { item: Notice }) => (
-    <View
-      style={[styles.noticeItem, item.is_important && styles.importantNotice]}
-    >
+    <View style={[styles.noticeItem, item.is_important && styles.importantNotice]}>
       <View style={styles.noticeHeader}>
         <View style={styles.noticeTitleContainer}>
           {item.is_important && (
@@ -63,17 +92,11 @@ export default function NoticesScreen() {
 
   const renderContent = () => {
     if (isLoading) {
-      return (
-        <ActivityIndicator size="large" style={styles.loadingIndicator} />
-      );
+      return <ActivityIndicator size="large" style={styles.loadingIndicator} />;
     }
 
     if (notices.length === 0) {
-      return (
-        <ThemedText style={styles.emptyText}>
-          등록된 공지사항이 없습니다.
-        </ThemedText>
-      );
+      return <ThemedText style={styles.emptyText}>등록된 공지사항이 없습니다.</ThemedText>;
     }
 
     return (
@@ -87,6 +110,23 @@ export default function NoticesScreen() {
             전체 공지사항
           </ThemedText>
         )}
+        ListFooterComponent={() => {
+          if (isLoadingMore) {
+            return <ActivityIndicator size="small" style={styles.loadingMoreIndicator} />;
+          }
+          if (!hasMorePages && notices.length > 0) {
+            return (
+              <ThemedText style={styles.noMoreText}>
+                모든 공지사항을 불러왔습니다.
+              </ThemedText>
+            );
+          }
+          return null;
+        }}
+        onEndReached={loadMoreNotices}
+        onEndReachedThreshold={0.5}
+        refreshing={isLoading}
+        onRefresh={refreshNotices}
       />
     );
   };
@@ -202,5 +242,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     opacity: 0.8,
+  },
+  loadingMoreIndicator: {
+    paddingVertical: 20,
+  },
+  noMoreText: {
+    textAlign: 'center',
+    paddingVertical: 20,
+    fontSize: 14,
+    opacity: 0.6,
   },
 });

@@ -42,11 +42,7 @@ export default function NoticeSection() {
       return <ActivityIndicator style={styles.centered} />;
     }
     if (notices.length === 0) {
-      return (
-        <ThemedText style={styles.emptyText}>
-          등록된 공지사항이 없습니다.
-        </ThemedText>
-      );
+      return <ThemedText style={styles.emptyText}>등록된 공지사항이 없습니다.</ThemedText>;
     }
     return notices.map((notice) => (
       <TouchableOpacity
@@ -85,10 +81,7 @@ export default function NoticeSection() {
         <ThemedText type="subtitle" style={styles.title}>
           공지사항
         </ThemedText>
-        <TouchableOpacity
-          style={styles.moreButton}
-          onPress={() => router.push('/notices')}
-        >
+        <TouchableOpacity style={styles.moreButton} onPress={() => router.push('/notices')}>
           <ThemedText style={styles.moreText}>더보기</ThemedText>
         </TouchableOpacity>
       </View>
