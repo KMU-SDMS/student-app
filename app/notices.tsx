@@ -11,7 +11,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { getNotices } from '@/services/apiService';
+import { getNotices, clearCache, getCacheStats } from '@/services/apiService';
 import { Notice, NoticesResponse } from '@/types/notice';
 
 export default function NoticesScreen() {
@@ -24,8 +24,16 @@ export default function NoticesScreen() {
   const [hasMorePages, setHasMorePages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [cacheInfo, setCacheInfo] = useState<{ size: number; entries: string[] }>({
+    size: 0,
+    entries: [],
+  });
 
-  const fetchNotices = async (page: number = 1, append: boolean = false) => {
+  const fetchNotices = async (
+    page: number = 1,
+    append: boolean = false,
+    forceRefresh: boolean = false,
+  ) => {
     try {
       if (append) {
         setIsLoadingMore(true);
@@ -34,27 +42,31 @@ export default function NoticesScreen() {
       } else {
         setIsRefreshing(true);
       }
-      
-      const response: NoticesResponse = await getNotices(page);
-      
+      const start = Date.now(); // 시작 시각 (밀리초)
+      const response: NoticesResponse = await getNotices(page, forceRefresh);
+      const end = Date.now(); // 종료 시각 (밀리초)
+      console.log(`공지사항 조회 시간: ${end - start}ms`);
       if (append) {
-        setNotices(prev => [...prev, ...response.notices]);
+        setNotices((prev) => [...prev, ...response.notices]);
       } else {
         setNotices(response.notices);
       }
-      
+
       // 페이지 정보 업데이트 - API 응답의 now_page와 total_page 비교
       setTotalPages(response.page_info.total_page);
       setCurrentPage(response.page_info.now_page);
       setHasMorePages(response.page_info.now_page < response.page_info.total_page);
-      
-      console.log('Page info:', {
-        currentPage: response.page_info.now_page,
-        totalPages: response.page_info.total_page,
-        totalNotices: response.page_info.total_notice,
-        hasMorePages: response.page_info.now_page < response.page_info.total_page,
-        noticesCount: response.notices.length
-      });
+
+      // console.log('Page info:', {
+      //   currentPage: response.page_info.now_page,
+      //   totalPages: response.page_info.total_page,
+      //   totalNotices: response.page_info.total_notice,
+      //   hasMorePages: response.page_info.now_page < response.page_info.total_page,
+      //   noticesCount: response.notices.length,
+      // });
+
+      // 캐시 정보 업데이트
+      setCacheInfo(getCacheStats());
     } catch (error) {
       console.error('Failed to fetch notices:', error);
     } finally {
@@ -80,7 +92,13 @@ export default function NoticesScreen() {
     setTotalPages(0);
     setHasMorePages(true);
     setNotices([]); // 기존 데이터 초기화
-    fetchNotices(1, false);
+    fetchNotices(1, false, true); // 강제 새로고침
+  };
+
+  const clearCacheAndRefresh = () => {
+    clearCache();
+    setCacheInfo(getCacheStats());
+    refreshNotices();
   };
 
   const handleNoticePress = (notice: Notice) => {
@@ -97,7 +115,7 @@ export default function NoticesScreen() {
   };
 
   const renderItem = ({ item }: { item: Notice }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.noticeItem, item.is_important && styles.importantNotice]}
       onPress={() => handleNoticePress(item)}
       activeOpacity={0.7}
@@ -136,9 +154,19 @@ export default function NoticesScreen() {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={() => (
-          <ThemedText type="title" style={styles.title}>
-            전체 공지사항
-          </ThemedText>
+          <View>
+            <ThemedText type="title" style={styles.title}>
+              전체 공지사항
+            </ThemedText>
+            {__DEV__ && (
+              <View style={styles.cacheInfo}>
+                <ThemedText style={styles.cacheText}>캐시: {cacheInfo.size}개 항목</ThemedText>
+                <TouchableOpacity onPress={clearCacheAndRefresh} style={styles.clearCacheButton}>
+                  <Text style={styles.clearCacheText}>캐시 삭제</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         )}
         ListFooterComponent={() => {
           if (isLoadingMore) {
@@ -283,5 +311,31 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 12,
     opacity: 0.5,
+  },
+  cacheInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  cacheText: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  clearCacheButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  clearCacheText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
