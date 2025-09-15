@@ -25,7 +25,18 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "PostScan",
+      "shortName": "PostScan",
+      "description": "송장 스캔 및 분석 앱",
+      "startUrl": "/",
+      "display": "standalone",
+      "orientation": "portrait",
+      "themeColor": "#ffffff",
+      "backgroundColor": "#ffffff",
+      "lang": "ko",
+      "scope": "/",
+      "manifest": "./public/manifest.json"
     },
     "plugins": [
       "expo-router",
