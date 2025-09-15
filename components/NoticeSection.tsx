@@ -11,7 +11,7 @@ import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useRouter } from 'expo-router';
 import { getNotices } from '@/services/apiService';
-import { Notice } from '@/types/notice';
+import { Notice, NoticesResponse } from '@/types/notice';
 
 export default function NoticeSection() {
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -21,8 +21,8 @@ export default function NoticeSection() {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const allNotices = await getNotices();
-        setNotices(allNotices.slice(0, 3));
+        const response: NoticesResponse = await getNotices();
+        setNotices(response.notices.slice(0, 3));
       } catch (error) {
         console.error('Failed to fetch notices for NoticeSection:', error);
       } finally {

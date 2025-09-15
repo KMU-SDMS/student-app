@@ -12,7 +12,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { getNotices } from '@/services/apiService';
-import { Notice } from '@/types/notice';
+import { Notice, NoticesResponse } from '@/types/notice';
 
 export default function NoticesScreen() {
   const insets = useSafeAreaInsets();
@@ -20,32 +20,47 @@ export default function NoticesScreen() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [hasMorePages, setHasMorePages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchNotices = async (page: number = 1, append: boolean = false) => {
     try {
       if (append) {
         setIsLoadingMore(true);
-      } else {
+      } else if (page === 1) {
         setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
       }
       
-      const data = await getNotices(page);
+      const response: NoticesResponse = await getNotices(page);
       
       if (append) {
-        setNotices(prev => [...prev, ...data]);
+        setNotices(prev => [...prev, ...response.notices]);
       } else {
-        setNotices(data);
+        setNotices(response.notices);
       }
       
-      // 페이지당 10개 고정이므로 10개 미만이면 더 이상 페이지가 없음
-      setHasMorePages(data.length === 10);
+      // 페이지 정보 업데이트 - API 응답의 now_page와 total_page 비교
+      setTotalPages(response.page_info.total_page);
+      setCurrentPage(response.page_info.now_page);
+      setHasMorePages(response.page_info.now_page < response.page_info.total_page);
+      
+      console.log('Page info:', {
+        currentPage: response.page_info.now_page,
+        totalPages: response.page_info.total_page,
+        totalNotices: response.page_info.total_notice,
+        hasMorePages: response.page_info.now_page < response.page_info.total_page,
+        noticesCount: response.notices.length
+      });
     } catch (error) {
       console.error('Failed to fetch notices:', error);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -54,16 +69,17 @@ export default function NoticesScreen() {
   }, []);
 
   const loadMoreNotices = () => {
-    if (!isLoadingMore && hasMorePages) {
+    if (!isLoadingMore && !isLoading && hasMorePages) {
       const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
       fetchNotices(nextPage, true);
     }
   };
 
   const refreshNotices = () => {
     setCurrentPage(1);
+    setTotalPages(0);
     setHasMorePages(true);
+    setNotices([]); // 기존 데이터 초기화
     fetchNotices(1, false);
   };
 
@@ -131,7 +147,14 @@ export default function NoticesScreen() {
           if (!hasMorePages && notices.length > 0) {
             return (
               <ThemedText style={styles.noMoreText}>
-                모든 공지사항을 불러왔습니다.
+                모든 공지사항을 불러왔습니다. ({notices.length}개)
+              </ThemedText>
+            );
+          }
+          if (totalPages > 0) {
+            return (
+              <ThemedText style={styles.pageInfoText}>
+                {currentPage} / {totalPages} 페이지
               </ThemedText>
             );
           }
@@ -139,7 +162,7 @@ export default function NoticesScreen() {
         }}
         onEndReached={loadMoreNotices}
         onEndReachedThreshold={0.5}
-        refreshing={isLoading}
+        refreshing={isRefreshing}
         onRefresh={refreshNotices}
       />
     );
@@ -254,5 +277,11 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     fontSize: 14,
     opacity: 0.6,
+  },
+  pageInfoText: {
+    textAlign: 'center',
+    paddingVertical: 10,
+    fontSize: 12,
+    opacity: 0.5,
   },
 });
