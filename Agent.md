@@ -1,7 +1,7 @@
-# PostScan PWA 전환 Agent 가이드
+# StudentApp PWA 전환 Agent 가이드
 
 ## 프로젝트 개요
-PostScan은 React Native Expo 기반의 송장 스캔 애플리케이션으로, PWA(Progressive Web App)로 전환하여 웹 환경에서도 네이티브 앱과 유사한 사용자 경험을 제공하는 것이 목표입니다.
+StudentApp은 React Native Expo 기반의 학생용 애플리케이션으로, PWA(Progressive Web App)로 전환하여 웹 환경에서도 네이티브 앱과 유사한 사용자 경험을 제공하는 것이 목표입니다. 공지사항 기능을 중심으로 한 교육 플랫폼으로 발전할 예정입니다.
 
 ## 현재 기술 스택
 - **프레임워크**: React Native (Expo SDK 54)
@@ -15,8 +15,8 @@ PostScan은 React Native Expo 기반의 송장 스캔 애플리케이션으로, 
 ## PWA 전환 목표
 
 ### 1. 핵심 기능 유지
-- 송장 스캔 및 분석 기능
-- 카메라 접근 및 이미지 캡처
+- 공지사항 조회 및 상세보기 (API 연동 완료)
+- 홈 화면 중심의 사용자 경험
 - 다크/라이트 테마 지원
 - 하단 탭 네비게이션
 
@@ -31,38 +31,44 @@ PostScan은 React Native Expo 기반의 송장 스캔 애플리케이션으로, 
 - 웹 브라우저 지원 추가
 - 플랫폼별 최적화된 UI/UX
 
+### 4. 교육 플랫폼 확장
+- 학생 중심의 UI/UX 설계
+- 공지사항 우선 표시
+- 향후 교육 기능 확장 가능한 구조
+
 ## 주요 도전과제
 
-### 1. 카메라 API 차이점
-- **네이티브**: Expo Camera (고성능)
-- **웹**: getUserMedia API (제한적 기능)
-- **해결방안**: 플랫폼별 조건부 렌더링
+### 1. 공지사항 데이터 최적화
+- **API 연동**: 기존 공지사항 API 활용
+- **캐싱 전략**: 오프라인에서도 공지사항 조회 가능
+- **실시간 업데이트**: 새 공지사항 알림 기능
 
 ### 2. 안전영역 처리
 - **Android**: Edge-to-edge 디자인, 시스템 바 고려
 - **iOS**: 노치, 홈 인디케이터, 다이나믹 아일랜드 고려
 - **웹**: CSS env() 함수 활용
 
-### 3. 터치 제스처
-- **네이티브**: react-native-gesture-handler
-- **웹**: CSS touch-action, JavaScript 이벤트
+### 3. 학생 중심 UX 설계
+- **직관적 네비게이션**: 공지사항 우선 표시
+- **반응형 레이아웃**: 다양한 디바이스 크기 대응
+- **접근성**: 스크린 리더 및 키보드 네비게이션 지원
 
 ## 구현 전략
 
 ### Phase 1: 웹 지원 기반 구축
 1. PWA 매니페스트 설정
 2. Service Worker 구현
-3. 웹 전용 컴포넌트 분리
+3. 공지사항 API 웹 최적화
 4. 반응형 레이아웃 적용
 
 ### Phase 2: 플랫폼별 최적화
 1. 안전영역 처리 개선
-2. 카메라 기능 웹 대응
+2. 공지사항 UI/UX 개선
 3. 터치 제스처 통합
 4. 성능 최적화
 
 ### Phase 3: 고급 기능
-1. 오프라인 지원
+1. 오프라인 공지사항 지원
 2. 푸시 알림 (웹)
 3. 앱 설치 UX 개선
 4. 접근성 향상
@@ -85,14 +91,26 @@ const useSafeArea = () => {
 };
 ```
 
-### 2. 카메라 플랫폼 분기
+### 2. 공지사항 데이터 관리
 ```typescript
-// 플랫폼별 카메라 컴포넌트
-const CameraComponent = () => {
-  if (Platform.OS === 'web') {
-    return <WebCamera />;
-  }
-  return <ExpoCamera />;
+// 공지사항 API 통합 훅
+const useNotices = () => {
+  const [notices, setNotices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const fetchNotices = async () => {
+    setLoading(true);
+    try {
+      const response = await apiService.getNotices();
+      setNotices(response.data);
+    } catch (error) {
+      console.error('공지사항 로딩 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return { notices, loading, fetchNotices };
 };
 ```
 
@@ -213,4 +231,4 @@ const useResponsiveLayout = () => {
 
 ---
 
-이 가이드는 PostScan PWA 전환 프로젝트의 전체적인 방향성과 기술적 접근 방법을 제시합니다. 각 단계별로 세부 구현 사항은 Task.md에서 확인할 수 있습니다.
+이 가이드는 StudentApp PWA 전환 프로젝트의 전체적인 방향성과 기술적 접근 방법을 제시합니다. 공지사항 기능을 중심으로 한 학생용 교육 플랫폼으로의 발전을 목표로 하며, 각 단계별로 세부 구현 사항은 Task.md에서 확인할 수 있습니다.
