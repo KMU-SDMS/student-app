@@ -1,32 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { getNoticeById } from '@/services/apiService';
+import { Notice } from '@/types/notice';
 
 export default function NoticeDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams();
   
-  // URL 파라미터에서 공지사항 데이터 추출
-  const notice = {
-    id: params.id ? parseInt(params.id as string) : 0,
-    title: params.title as string || '',
-    content: params.content as string || '',
-    date: params.date as string || '',
-    is_important: params.is_important === 'true',
-  };
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+  useEffect(() => {
+    const fetchNotice = async () => {
+      try {
+        const noticeId = params.id ? parseInt(params.id as string) : 0;
+        if (noticeId === 0) {
+          setError('잘못된 공지사항 ID입니다.');
+          return;
+        }
+
+        const noticeData = await getNoticeById(noticeId);
+        if (noticeData) {
+          setNotice(noticeData);
+        } else {
+          setError('공지사항을 찾을 수 없습니다.');
+        }
+      } catch (err) {
+        console.error('Failed to fetch notice:', err);
+        setError('공지사항을 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotice();
+  }, [params.id]);
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <ActivityIndicator size="large" style={styles.loadingIndicator} />;
+    }
+
+    if (error) {
+      return <ThemedText style={styles.errorText}>{error}</ThemedText>;
+    }
+
+    if (!notice) {
+      return <ThemedText style={styles.errorText}>공지사항을 찾을 수 없습니다.</ThemedText>;
+    }
+
+    return (
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View style={styles.titleContainer}>
@@ -46,6 +82,12 @@ export default function NoticeDetailScreen() {
           <ThemedText style={styles.content}>{notice.content}</ThemedText>
         </View>
       </ScrollView>
+    );
+  };
+
+  return (
+    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {renderContent()}
       
       <TouchableOpacity
         onPress={() => router.back()}
@@ -132,5 +174,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     lineHeight: 40,
+  },
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+    color: '#FF3B30',
   },
 });
