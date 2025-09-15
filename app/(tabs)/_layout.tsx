@@ -22,9 +22,15 @@ export default function TabLayout() {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            height: 88, // 탭바 높이 명시적 설정
           },
-          default: {},
+          default: {
+            height: 60, // Android 탭바 높이 설정
+          },
         }),
+        tabBarItemStyle: {
+          paddingVertical: 4, // 탭 아이템 내부 패딩
+        },
       }}
     >
       <Tabs.Screen

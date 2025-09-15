@@ -12,8 +12,9 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 60 }]}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]} // 탭바 공간 확보
       showsVerticalScrollIndicator={false}
+      bounces={true} // iOS 바운스 효과 활성화
     >
       <ThemedView style={[styles.content, { paddingTop: insets.top + 20 }]}>
         {/* 환영 메시지 */}

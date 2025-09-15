@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 
@@ -9,6 +9,8 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { width } = Dimensions.get('window');
+  const isSmallScreen = width < 375; // 작은 화면 감지
 
   const today = new Date();
   const year = currentDate.getFullYear();
@@ -88,7 +90,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
       days.push(
         <TouchableOpacity key={day} style={styles.dayContainer} onPress={() => selectDate(day)}>
           <View style={isTodayDay ? styles.todayContainer : undefined}>
-            <Text style={[styles.dayText, isTodayDay && styles.todayText]}>{day}</Text>
+            <Text style={[isSmallScreen ? styles.dayTextSmall : styles.dayText, isTodayDay && styles.todayText]}>{day}</Text>
           </View>
           {hasRegular && !hasCleaning && <View style={styles.regularRollCallDot} />}
           {hasCleaning && <View style={styles.cleaningRollCallDot} />}
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     overflow: 'hidden',
-    height: 420, // 범례를 포함한 전체 높이로 조정
+    minHeight: 450, // 범례와의 충돌 방지를 위해 최소 높이 증가
   },
   header: {
     flexDirection: 'row',
@@ -245,7 +247,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 8,
     paddingVertical: 8,
-    height: 240, // 범례 공간을 위해 높이 조정
+    minHeight: 280, // 범례와의 충돌 방지를 위해 최소 높이 증가
+    paddingBottom: 20, // 하단 여백 추가
   },
   dayContainer: {
     width: '14.28%',
@@ -260,6 +263,11 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 16,
+    fontWeight: '500',
+    color: '#1C1C1E',
+  },
+  dayTextSmall: {
+    fontSize: 14, // 작은 화면용 폰트 크기
     fontWeight: '500',
     color: '#1C1C1E',
   },
@@ -316,11 +324,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   legend: {
-    marginTop: 8,
-    paddingVertical: 12,
+    marginTop: 16, // 상단 여백 증가
+    paddingVertical: 16, // 세로 패딩 증가
     paddingHorizontal: 20,
     backgroundColor: 'rgba(0,0,0,0.02)',
     alignItems: 'center',
+    borderTopWidth: 1, // 상단 경계선 추가
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   legendContainer: {
     flexDirection: 'row',
