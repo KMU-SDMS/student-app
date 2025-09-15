@@ -18,7 +18,7 @@ export default function NoticeDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+
   const [notice, setNotice] = useState<Notice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export default function NoticeDetailScreen() {
             {new Date(notice.date).toISOString().split('T')[0]}
           </ThemedText>
         </View>
-        
+
         <View style={styles.contentContainer}>
           <ThemedText style={styles.content}>{notice.content}</ThemedText>
         </View>
@@ -88,7 +88,7 @@ export default function NoticeDetailScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       {renderContent()}
-      
+
       <TouchableOpacity
         onPress={() => router.back()}
         style={[styles.backButton, { top: insets.top + 10 }]}
