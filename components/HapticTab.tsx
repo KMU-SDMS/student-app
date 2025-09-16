@@ -23,7 +23,6 @@ export function HapticTab(props: BottomTabBarButtonProps) {
           alignItems: 'center',
           paddingVertical: Platform.OS === 'ios' ? 8 : 0,
           flex: 1,
-          width: '50%',
           paddingHorizontal: 16,
         },
       ]}
