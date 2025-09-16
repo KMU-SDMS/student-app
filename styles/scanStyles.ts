@@ -81,7 +81,8 @@ export const scanStyles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
+    zIndex: 1,
+    pointerEvents: 'none',
   },
   guideText: {
     color: 'rgba(255, 255, 255, 0.81)',
@@ -113,6 +114,7 @@ export const scanStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 10,
   },
   ctrlLeft: {
     minWidth: 84,

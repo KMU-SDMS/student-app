@@ -1,111 +1,104 @@
 백엔드 API 명세 (src.mdc 기반)
 
-
 본 문서는 `src/` 구조와 `src.mdc` 요약을 바탕으로 현재 개발된 API를 정리합니다. 각 항목은 path, 기능, request, method, response 형식으로 기술합니다.
 
 공통
 
-* Base URL: API Gateway 배포 주소에 따라 상이
-* Content-Type: application/json; charset=utf-8
-* 성공 응답 포맷: utils/responses.create_success_response(data) 표준
-* 에러 응답 포맷: utils/responses.create_error_response(message, statusCode) 표준
+- Base URL: API Gateway 배포 주소에 따라 상이
+- Content-Type: application/json; charset=utf-8
+- 성공 응답 포맷: utils/responses.create_success_response(data) 표준
+- 에러 응답 포맷: utils/responses.create_error_response(message, statusCode) 표준
 
 에러 코드 정책
 
-* 400: 잘못된 요청 (ID 형식 오류, 잘못된 파라미터, 필수 필드 누락)
-* 404: 리소스 없음
-* 500: 서버 내부 오류
-
-
+- 400: 잘못된 요청 (ID 형식 오류, 잘못된 파라미터, 필수 필드 누락)
+- 404: 리소스 없음
+- 500: 서버 내부 오류
 
 성공 응답 형식
 
 json
 {
-  "statusCode": 200,
-  "headers": {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*"
-  },
-  "body": "데이터"
+"statusCode": 200,
+"headers": {
+"Content-Type": "application/json",
+"Access-Control-Allow-Origin": "\*"
+},
+"body": "데이터"
 }
 
 에러 응답 형식
 
 json
 {
-  "statusCode": 400,
-  "headers": {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*"
-  },
-  "body": "{\"error\": \"에러 메시지\"}"
+"statusCode": 400,
+"headers": {
+"Content-Type": "application/json",
+"Access-Control-Allow-Origin": "\*"
+},
+"body": "{\"error\": \"에러 메시지\"}"
 }
 
 공지사항 API
 
 1. 공지사항 페이지네이션 조회
 
-* path: /notices
-* 기능: 공지사항 목록을 페이지네이션하여 조회합니다. (페이지당 10개 고정)
-* request
-    * 쿼리 파라미터: page (기본값: 1)
-    * 예: /notices?page=1
-* method: GET
-* response
+- path: /notices
+- 기능: 공지사항 목록을 페이지네이션하여 조회합니다. (페이지당 10개 고정)
+- request
+  - 쿼리 파라미터: page (기본값: 1)
+  - 예: /notices?page=1
+- method: GET
+- response
 
 {
-  "notices": [
-    {
-      "id": 1,
-      "title": "페이지네이션 테스트 데이터 1",
-      "content": "첫 번째 페이지의 첫 번째 공지사항입니다.",
-      "date": "2025-09-10T00:47:54.838984+00:00",
-      "is_important": false
-    },
-    {
-      "id": 2,
-      "title": "중요 공지",
-      "content": "이것은 중요 공지사항입니다.",
-      "date": "2025-09-09T00:47:54.838984+00:00",
-      "is_important": true
-    }
-  ],
-  "page_info": {
-    "total_page": 2,
-    "total_notice": 20,
-    "now_page": 1
-  }
+"notices": [
+{
+"id": 1,
+"title": "페이지네이션 테스트 데이터 1",
+"content": "첫 번째 페이지의 첫 번째 공지사항입니다.",
+"date": "2025-09-10T00:47:54.838984+00:00",
+"is_important": false
+},
+{
+"id": 2,
+"title": "중요 공지",
+"content": "이것은 중요 공지사항입니다.",
+"date": "2025-09-09T00:47:54.838984+00:00",
+"is_important": true
+}
+],
+"page_info": {
+"total_page": 2,
+"total_notice": 20,
+"now_page": 1
+}
 }
 
-* 에러 예시 (잘못된 페이지 번호 입력)
+- 에러 예시 (잘못된 페이지 번호 입력)
 
 { "error": "Page number must be greater than 0." }
 { "error": "Invalid page number format." }
 
-
 2. 공지사항 단건 조회
 
-* path: /notice
-* 기능: 공지사항 ID로 단건 조회
-* request
-    * 쿼리 파라미터: id (필수)
-    * 예: /notice?id=1
-* method: GET
-* response
+- path: /notice
+- 기능: 공지사항 ID로 단건 조회
+- request
+  - 쿼리 파라미터: id (필수)
+  - 예: /notice?id=1
+- method: GET
+- response
 
 {
-  "id": 1,
-  "title": "앱 업데이트 안내",
-  "content": "새로운 기능이 추가되었습니다...",
-  "date": "2024-01-15T00:47:54.838984+00:00",
-  "is_important": true
+"id": 1,
+"title": "앱 업데이트 안내",
+"content": "새로운 기능이 추가되었습니다...",
+"date": "2024-01-15T00:47:54.838984+00:00",
+"is_important": true
 }
 
-* 에러 예시
+- 에러 예시
 
 { "error": "Notice ID is required." }
 { "error": "Notice not found" }
-
-
-

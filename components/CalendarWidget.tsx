@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     overflow: 'hidden',
-    height: 420, // 범례를 포함한 전체 높이로 조정
+    height: 460, // 범례를 포함한 전체 높이로 조정
   },
   header: {
     flexDirection: 'row',
@@ -245,11 +245,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 8,
     paddingVertical: 8,
-    height: 240, // 범례 공간을 위해 높이 조정
+    height: 280, // 더 많은 공간 확보
   },
   dayContainer: {
     width: '14.28%',
-    aspectRatio: 1,
+    height: 40, // aspectRatio 대신 고정 높이 사용
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
   },
   regularRollCallDot: {
     position: 'absolute',
-    bottom: -6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    bottom: 2, // bottom: -6에서 2로 변경하여 컨테이너 내부에 위치
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#FFD700',
     shadowColor: '#FFD700',
     shadowOffset: {
@@ -301,10 +301,10 @@ const styles = StyleSheet.create({
   },
   cleaningRollCallDot: {
     position: 'absolute',
-    bottom: -6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    bottom: 2, // bottom: -6에서 2로 변경하여 컨테이너 내부에 위치
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#007AFF',
     shadowColor: '#007AFF',
     shadowOffset: {
