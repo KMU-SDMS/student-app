@@ -34,26 +34,26 @@ export default function NoticesScreen() {
       } else {
         setIsRefreshing(true);
       }
-      
+
       const response: NoticesResponse = await getNotices(page);
-      
+
       if (append) {
-        setNotices(prev => [...prev, ...response.notices]);
+        setNotices((prev) => [...prev, ...response.notices]);
       } else {
         setNotices(response.notices);
       }
-      
+
       // 페이지 정보 업데이트 - API 응답의 now_page와 total_page 비교
       setTotalPages(response.page_info.total_page);
       setCurrentPage(response.page_info.now_page);
       setHasMorePages(response.page_info.now_page < response.page_info.total_page);
-      
+
       console.log('Page info:', {
         currentPage: response.page_info.now_page,
         totalPages: response.page_info.total_page,
         totalNotices: response.page_info.total_notice,
         hasMorePages: response.page_info.now_page < response.page_info.total_page,
-        noticesCount: response.notices.length
+        noticesCount: response.notices.length,
       });
     } catch (error) {
       console.error('Failed to fetch notices:', error);
@@ -97,7 +97,7 @@ export default function NoticesScreen() {
   };
 
   const renderItem = ({ item }: { item: Notice }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.noticeItem, item.is_important && styles.importantNotice]}
       onPress={() => handleNoticePress(item)}
       activeOpacity={0.7}

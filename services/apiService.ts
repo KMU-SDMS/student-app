@@ -24,7 +24,7 @@ export const getNotices = async (page: number = 1): Promise<NoticesResponse> => 
     if (result.notices && result.page_info) {
       return {
         notices: result.notices,
-        page_info: result.page_info
+        page_info: result.page_info,
       };
     } else {
       throw new Error('Unexpected API response format');
@@ -37,8 +37,8 @@ export const getNotices = async (page: number = 1): Promise<NoticesResponse> => 
       page_info: {
         total_page: 0,
         total_notice: 0,
-        now_page: 1
-      }
+        now_page: 1,
+      },
     };
   }
 };

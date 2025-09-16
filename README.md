@@ -24,7 +24,7 @@ React Native 앱으로 Expo SDK 54를 사용하여 개발된 송장 스캔 및 �
 
 ## 📋 사전 요구사항
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (권장) 또는 npm
 - Expo CLI
 - iOS Simulator (iOS 개발용)
@@ -33,12 +33,14 @@ React Native 앱으로 Expo SDK 54를 사용하여 개발된 송장 스캔 및 �
 ## 🚀 설치 및 실행
 
 ### 1. 저장소 클론
+
 ```bash
 git clone [repository-url]
 cd postscan
 ```
 
 ### 2. 의존성 설치
+
 ```bash
 # pnpm 사용 (권장)
 pnpm install
@@ -48,6 +50,7 @@ npm install
 ```
 
 ### 3. 앱 실행
+
 ```bash
 # 개발 서버 시작
 npx expo start
@@ -128,6 +131,7 @@ pnpm update
 ## 🐛 문제 해결
 
 ### Expo SDK 버전 충돌
+
 ```bash
 # node_modules 정리 후 재설치
 rm -rf node_modules pnpm-lock.yaml
@@ -135,6 +139,7 @@ pnpm install
 ```
 
 ### Metro 캐시 문제
+
 ```bash
 # Metro 캐시 정리
 npx expo start --clear
