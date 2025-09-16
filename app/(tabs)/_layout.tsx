@@ -1,6 +1,6 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Link, usePathname } from 'expo-router';
 import React from 'react';
-import { Platform, ViewStyle } from 'react-native';
+import { Platform, ViewStyle, View, Pressable, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -11,6 +11,74 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+
+  // 웹 전용 커스텀 탭 바
+  const WebTabBar = () => {
+    const tabs = [
+      { href: '/' as const, title: '홈' },
+      { href: '/scan' as const, title: '스캔' },
+    ] as const;
+
+    return (
+      <View
+        accessibilityRole="tablist"
+        style={{
+          pointerEvents: 'box-none',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(0, 0, 0, 0.1)',
+          height: 60,
+          paddingTop: 8,
+          paddingBottom: 8,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          position: 'absolute',
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = pathname === tab.href;
+          return (
+            <Link key={tab.href} href={tab.href} asChild>
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                style={({ pressed }) => ({
+                  backgroundColor: 'transparent',
+                  borderRadius: 0,
+                  minHeight: 60,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  flex: 1,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text
+                  style={{
+                    color: isActive ? Colors[colorScheme ?? 'light'].tint : '#8E8E93',
+                    fontSize: 16,
+                    fontWeight: '600',
+                    marginBottom: 0,
+                    marginTop: 0,
+                    textAlign: 'center',
+                  }}
+                >
+                  {tab.title}
+                </Text>
+              </Pressable>
+            </Link>
+          );
+        })}
+      </View>
+    );
+  };
 
   return (
     <Tabs
@@ -32,7 +100,7 @@ export default function TabLayout() {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
-            zIndex: 10,
+            pointerEvents: 'box-none',
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderTopWidth: 1,
             borderTopColor: 'rgba(0, 0, 0, 0.1)',
@@ -49,8 +117,7 @@ export default function TabLayout() {
             right: 0,
           },
           default: {
-            position: 'fixed',
-            zIndex: 10,
+            pointerEvents: 'box-none',
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderTopWidth: 1,
             borderTopColor: 'rgba(0, 0, 0, 0.1)',
@@ -63,13 +130,10 @@ export default function TabLayout() {
             bottom: 0,
             left: 0,
             right: 0,
-            // 웹 PWA 안전영역 대응 (iOS 사파리 하단 홈 인디케이터 등)
-            // react-native-web은 env(safe-area-inset-*)를 직접 지원하지 않으므로 runtime 스타일 주입이 어렵다.
-            // 대신 여기서 기본 여백을 조금 더 준다.
-            // 필요 시 글로벌 CSS에 :root { padding-bottom: env(safe-area-inset-bottom); }를 추가 고려.
           },
         }),
       }}
+      {...(Platform.OS === 'web' ? { tabBar: () => <WebTabBar /> } : {})}
     >
       <Tabs.Screen
         name="index"
