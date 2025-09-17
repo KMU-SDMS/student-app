@@ -24,10 +24,13 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
     return date.getDay() === 1;
   };
 
-  // 오늘인지 확인하는 함수
-  const isToday = (date: Date) => {
-    return date.toDateString() === today.toDateString();
-  };
+  // 오늘인지 확인하는 함수 (연/월/일 단위로 비교)
+  const isSameYMD = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const isToday = (date: Date) => isSameYMD(date, today);
 
   // 해당 날짜에 일반 점호가 있는지 확인하는 함수
   const hasRegularRollCall = (date: Date) => {
@@ -72,7 +75,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
     // 빈 칸들 (이전 달의 마지막 주)
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.push(
-        <View key={`empty-${i}`} style={styles.dayContainer}>
+        <View key={`empty-${year}-${month}-empty-${i}`} style={styles.dayContainer}>
           <Text style={styles.emptyDay}></Text>
         </View>,
       );
@@ -86,10 +89,18 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
       const hasCleaning = hasCleaningRollCall(date);
 
       days.push(
-        <TouchableOpacity key={day} style={styles.dayContainer} onPress={() => selectDate(day)}>
-          <View style={isTodayDay ? styles.todayContainer : undefined}>
-            <Text style={[styles.dayText, isTodayDay && styles.todayText]}>{day}</Text>
-          </View>
+        <TouchableOpacity
+          key={`${year}-${month}-${day}`}
+          style={styles.dayContainer}
+          onPress={() => selectDate(day)}
+        >
+          {isTodayDay ? (
+            <View style={styles.todayContainer}>
+              <Text style={[styles.dayText, styles.todayText]}>{day}</Text>
+            </View>
+          ) : (
+            <Text style={styles.dayText}>{day}</Text>
+          )}
           {hasRegular && !hasCleaning && <View style={styles.regularRollCallDot} />}
           {hasCleaning && <View style={styles.cleaningRollCallDot} />}
         </TouchableOpacity>,
