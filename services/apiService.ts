@@ -1,6 +1,6 @@
-import { Notice, NoticesResponse } from '../types/notice';
+import { Notice, NoticesResponse, PageInfo } from '../types/notice';
 
-const BASE_URL = 'https://12y69ifvh1.execute-api.ap-northeast-2.amazonaws.com';
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL as string;
 
 // 페이지네이션된 공지사항 조회
 export const getNotices = async (page: number = 1): Promise<NoticesResponse> => {
@@ -17,7 +17,7 @@ export const getNotices = async (page: number = 1): Promise<NoticesResponse> => 
       throw new Error(`Failed to fetch notices with status: ${response.status}`);
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as { notices: Notice[]; page_info: PageInfo };
     console.log('Received notices from API:', result);
 
     // 새로운 API 응답 형식에 맞게 처리
@@ -58,7 +58,7 @@ export const getNoticeById = async (id: number): Promise<Notice | null> => {
       throw new Error(`Failed to fetch notice with status: ${response.status}`);
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as Notice;
     console.log('Received notice from API:', result);
 
     // 공지사항 단건 조회 응답 처리
