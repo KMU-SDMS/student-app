@@ -1,34 +1,31 @@
-# PostScan 📦
+# student-app 🎓
 
-React Native 앱으로 Expo SDK 54를 사용하여 개발된 송장 스캔 및 분석 프로젝트입니다.
+스마트 기숙사 시스템을 위한 학생용 애플리케이션입니다. React Native(Expo) 기반으로 개발되었으며, 현재는 `react-native-web`을 통해 PWA(Web) 중심으로 배포할 수 있도록 구성되어 있습니다. iOS/Android 실행도 가능합니다.
 
 ## 🚀 주요 기능
 
-- **카메라 스캔**: 송장 촬영 및 이미지 처리
-- **AI 분석**: 촬영된 송장의 텍스트 분석 및 데이터 추출
-- **공지사항**: 중요 공지사항 및 일반 공지사항 관리
-- **결제 관리**: 유지보수 결제 및 구독 관리
-- **탭 기반 네비게이션**: 직관적인 사용자 인터페이스
-- **크로스 플랫폼**: iOS, Android, Web 지원
+- **공지사항**: 중요/일반 공지 조회 및 상세 확인
+- **점호 일정 캘린더**: 월간/주간 캘린더로 점호 일정 확인
+- **관비 납부**: 납부 내역 확인 및 결제 흐름 연동
+- **탭 기반 네비게이션**: 직관적인 하단 탭 UI
+- **PWA 배포**: `react-native-web` + Expo Router를 활용한 웹 앱 배포
 
 ## 🛠 기술 스택
 
-- **Frontend**: React Native 0.81.4, Expo SDK 54
-- **Language**: TypeScript 5.8.3
-- **Navigation**: React Navigation 7.x
-- **UI Components**: Expo Vector Icons, Custom Themed Components
-- **Camera**: Expo Camera, Expo Image Picker
-- **State Management**: React Hooks
+- **Runtime/Framework**: React Native 0.81.4, Expo SDK 54
+- **Language**: TypeScript 5.8.x
+- **Navigation**: React Navigation 7.x, Expo Router 6.x
+- **Web**: react-native-web 0.21.x, Expo Webpack
+- **UI**: Expo Vector Icons, 커스텀 Themed 컴포넌트
+- **State**: React Hooks
 - **HTTP Client**: Axios
 - **Package Manager**: pnpm
 
 ## 📋 사전 요구사항
 
 - Node.js 18+
-- pnpm (권장) 또는 npm
+- pnpm 9+
 - Expo CLI
-- iOS Simulator (iOS 개발용)
-- Android Studio (Android 개발용)
 
 ## 🚀 설치 및 실행
 
@@ -36,51 +33,60 @@ React Native 앱으로 Expo SDK 54를 사용하여 개발된 송장 스캔 및 �
 
 ```bash
 git clone [repository-url]
-cd postscan
+cd student-app
 ```
 
-### 2. 의존성 설치
+### 2. 의존성 설치 (pnpm)
 
 ```bash
-# pnpm 사용 (권장)
 pnpm install
-
-# 또는 npm 사용
-npm install
 ```
 
-### 3. 앱 실행
+### 3. 개발 서버 실행
 
 ```bash
-# 개발 서버 시작
-npx expo start
+# Expo 개발 서버
+pnpm start
 
-# 웹에서 실행
-npx expo start --web
+# Web(PWA)로 실행
+pnpm web
 
-# iOS 시뮬레이터에서 실행
-npx expo start --ios
+# iOS 시뮬레이터로 실행 (옵션)
+pnpm ios
 
-# Android 에뮬레이터에서 실행
-npx expo start --android
+# Android 에뮬레이터로 실행 (옵션)
+pnpm android
 ```
 
-## 📱 사용법
+## 🌐 PWA 빌드 & 배포
 
-1. **스캔 탭**: 송장을 카메라로 촬영하여 스캔
-2. **분석 탭**: 촬영된 이미지의 분석 결과 확인
-3. **공지사항 탭**: 중요 공지사항 및 일반 공지사항 조회
-4. **결제 탭**: 유지보수 결제 및 구독 관리
+현재는 Web(PWA) 중심 배포를 지향합니다.
+
+```bash
+# 정적 웹 산출물 생성 (dist/)
+pnpm exec expo export --platform web
+
+# 생성 경로: dist/
+```
+
+- 생성된 `dist/` 폴더를 정적 호스팅(예: Vercel, Netlify, S3/CloudFront)에 업로드하면 배포가 완료됩니다.
+- 저장소에 `vercel.json`이 포함되어 있다면, Vercel을 통해 정적 배포 구성이 가능합니다.
+
+## 📱 사용법(핵심 플로우)
+
+1. **공지사항**: 최신 공지 확인 → 상세 보기
+2. **점호 캘린더**: 월간/주간 보기에서 일정 확인
+3. **관비 납부**: 납부 정보 확인 및 결제 흐름 진행
 
 ## 🏗 프로젝트 구조
 
 ```
-postscan/
+student-app/
 ├── app/                    # 앱 페이지 (Expo Router)
 │   ├── (tabs)/            # 탭 네비게이션
-│   ├── analysis.tsx       # 분석 페이지
+│   ├── analysis.tsx       # 분석(내부/부가 기능)
 │   ├── notices.tsx        # 공지사항 페이지
-│   └── payment.tsx        # 결제 페이지
+│   └── payment.tsx        # 관비 납부 페이지
 ├── components/            # 재사용 가능한 컴포넌트
 │   ├── ui/               # UI 컴포넌트
 │   └── form/             # 폼 컴포넌트
@@ -110,19 +116,19 @@ pnpm format
 pnpm format:check
 ```
 
-## 📦 패키지 관리
+## 📦 패키지 관리 (pnpm)
 
 이 프로젝트는 **pnpm**을 사용하여 패키지를 관리합니다.
 
 ```bash
-# 새 패키지 추가
-pnpm add [패키지명]
+# 패키지 추가
+pnpm add <패키지명>
 
 # 개발 의존성 추가
-pnpm add -D [패키지명]
+pnpm add -D <패키지명>
 
 # 패키지 제거
-pnpm remove [패키지명]
+pnpm remove <패키지명>
 
 # 패키지 업데이트
 pnpm update
@@ -130,11 +136,11 @@ pnpm update
 
 ## 🐛 문제 해결
 
-### Expo SDK 버전 충돌
+### Expo SDK/의존성 충돌
 
 ```bash
-# node_modules 정리 후 재설치
-rm -rf node_modules pnpm-lock.yaml
+# 의존성 초기화 후 재설치
+rimraf node_modules pnpm-lock.yaml
 pnpm install
 ```
 
@@ -142,7 +148,7 @@ pnpm install
 
 ```bash
 # Metro 캐시 정리
-npx expo start --clear
+pnpm exec expo start --clear
 ```
 
 ## 📄 라이선스
