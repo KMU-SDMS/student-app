@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.02)',
   },
   weekDayContainer: {
-    flex: 1,
+    width: '14.28%',
     alignItems: 'center',
   },
   weekDayText: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     height: 280, // 더 많은 공간 확보
   },
