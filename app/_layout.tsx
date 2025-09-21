@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
@@ -19,6 +20,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#111827" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
+      </Head>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="notices" options={{ headerShown: false }} />
