@@ -1,8 +1,8 @@
-import React, { memo } from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
-import { useColorScheme } from "../../hooks/useColorScheme";
-import { Colors } from "../../constants/Colors";
-import type { KeyboardTypeOptions } from "react-native";
+import React, { memo } from 'react';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { useColorScheme } from '../../hooks/useColorScheme';
+import { Colors } from '../../constants/Colors';
+import type { KeyboardTypeOptions } from 'react-native';
 
 interface TextFieldProps {
   label: string;
@@ -12,6 +12,21 @@ interface TextFieldProps {
   multiline?: boolean;
   keyboardType?: KeyboardTypeOptions;
   testID?: string;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoCorrect?: boolean;
+  returnKeyType?:
+    | 'done'
+    | 'go'
+    | 'next'
+    | 'search'
+    | 'send'
+    | 'default'
+    | 'emergency-call'
+    | 'google'
+    | 'join'
+    | 'route'
+    | 'yahoo';
+  blurOnSubmit?: boolean;
 }
 
 const TextFieldComponent: React.FC<TextFieldProps> = ({
@@ -22,9 +37,13 @@ const TextFieldComponent: React.FC<TextFieldProps> = ({
   multiline,
   keyboardType,
   testID,
+  autoCapitalize = 'none',
+  autoCorrect = false,
+  returnKeyType = 'done',
+  blurOnSubmit = true,
 }) => {
   const colorScheme = useColorScheme();
-  const mode: "light" | "dark" = colorScheme === "dark" ? "dark" : "light";
+  const mode: 'light' | 'dark' = colorScheme === 'dark' ? 'dark' : 'light';
   const styles = React.useMemo(() => createTextFieldStyles(mode), [mode]);
 
   return (
@@ -39,16 +58,20 @@ const TextFieldComponent: React.FC<TextFieldProps> = ({
         multiline={multiline}
         keyboardType={keyboardType}
         testID={testID}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
+        returnKeyType={returnKeyType}
+        blurOnSubmit={blurOnSubmit}
       />
     </View>
   );
 };
 
-TextFieldComponent.displayName = "TextField";
+TextFieldComponent.displayName = 'TextField';
 
 export const TextField = memo(TextFieldComponent);
 
-const createTextFieldStyles = (mode: "light" | "dark") => {
+const createTextFieldStyles = (mode: 'light' | 'dark') => {
   const palette = Colors[mode];
   return StyleSheet.create({
     container: {
@@ -56,22 +79,22 @@ const createTextFieldStyles = (mode: "light" | "dark") => {
     },
     label: {
       fontSize: 14,
-      fontWeight: "600",
+      fontWeight: '600',
       color: palette.icon,
       marginBottom: 6,
     },
     input: {
       borderWidth: 1,
-      borderColor: mode === "light" ? "#E5E7EB" : "#2A2E33",
+      borderColor: mode === 'light' ? '#E5E7EB' : '#2A2E33',
       borderRadius: 8,
       padding: 12,
       fontSize: 16,
-      backgroundColor: mode === "light" ? "#F6F7F9" : "#1F2123",
+      backgroundColor: mode === 'light' ? '#F6F7F9' : '#1F2123',
       color: palette.text,
     },
     multilineInput: {
       height: 80,
-      textAlignVertical: "top",
+      textAlignVertical: 'top',
     },
   });
 };

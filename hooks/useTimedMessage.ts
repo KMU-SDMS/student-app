@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useTimedMessage(defaultTimeoutMs: number = 4000) {
   const [message, setMessage] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export function useTimedMessage(defaultTimeoutMs: number = 4000) {
         }, ms);
       }
     },
-    [defaultTimeoutMs]
+    [defaultTimeoutMs],
   );
 
   useEffect(() => {

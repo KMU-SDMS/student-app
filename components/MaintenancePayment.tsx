@@ -47,13 +47,13 @@ export default function MaintenancePayment() {
 
   const handlePayment = (fee: MaintenanceFee) => {
     if (fee.isPaid) return; // 이미 납부 완료된 경우 무시
-    
+
     // 결제 화면으로 이동
     router.push({
       pathname: '/payment',
       params: {
-        fee: JSON.stringify(fee)
-      }
+        fee: JSON.stringify(fee),
+      },
     });
   };
 
@@ -76,9 +76,7 @@ export default function MaintenancePayment() {
         </View>
         <View style={styles.noFeesContainer}>
           <ThemedText style={styles.noFeesIcon}>✅</ThemedText>
-          <ThemedText style={styles.noFeesText}>
-            관리비 내역이 없습니다
-          </ThemedText>
+          <ThemedText style={styles.noFeesText}>관리비 내역이 없습니다</ThemedText>
         </View>
       </ThemedView>
     );
@@ -91,32 +89,22 @@ export default function MaintenancePayment() {
           관리비 납부
         </ThemedText>
       </View>
-      
+
       <View style={styles.feeList}>
         {allFees.map((fee) => (
           <View key={fee.id} style={styles.feeItem}>
             <View style={styles.feeInfo}>
               <ThemedText style={styles.feeMonth}>{fee.month}</ThemedText>
-              <ThemedText style={styles.feeAmount}>
-                {formatAmount(fee.amount)}
-              </ThemedText>
-              <ThemedText style={styles.dueDate}>
-                납부기한: {fee.dueDate}
-              </ThemedText>
+              <ThemedText style={styles.feeAmount}>{formatAmount(fee.amount)}</ThemedText>
+              <ThemedText style={styles.dueDate}>납부기한: {fee.dueDate}</ThemedText>
             </View>
-            
+
             <TouchableOpacity
-              style={[
-                styles.payButton,
-                fee.isPaid && styles.completedButton
-              ]}
+              style={[styles.payButton, fee.isPaid && styles.completedButton]}
               onPress={() => handlePayment(fee)}
               disabled={fee.isPaid}
             >
-              <Text style={[
-                styles.payButtonText,
-                fee.isPaid && styles.completedButtonText
-              ]}>
+              <Text style={[styles.payButtonText, fee.isPaid && styles.completedButtonText]}>
                 {getButtonText(fee)}
               </Text>
             </TouchableOpacity>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
+import { useCalendar } from '../hooks/useCalendar';
 
 interface CalendarWidgetProps {
   onDateSelect?: (date: Date) => void;
@@ -9,157 +10,181 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  
+  const {
+    isLoading,
+    error,
+    hasRollCallOnDate,
+    getRollCallTypeOnDate,
+    hasPaymentOnDate,
+    getPaymentTypeOnDate,
+    loadAllEvents,
+  } = useCalendar();
+
   const today = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  
+
   // 해당 월의 첫 번째 날과 마지막 날
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const firstDayOfWeek = firstDay.getDay(); // 0: 일요일, 1: 월요일, ...
-  
-  // 월요일인지 확인하는 함수
-  const isMonday = (date: Date) => {
-    return date.getDay() === 1;
-  };
-  
-  // 오늘인지 확인하는 함수
-  const isToday = (date: Date) => {
-    return date.toDateString() === today.toDateString();
-  };
-  
-  // 해당 날짜에 일반 점호가 있는지 확인하는 함수
+
+  // 오늘인지 확인하는 함수 (연/월/일 단위로 비교)
+  const isSameYMD = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const isToday = (date: Date) => isSameYMD(date, today);
+
+  // API에서 가져온 데이터로 점호 여부 확인
   const hasRegularRollCall = (date: Date) => {
-    return isMonday(date);
+    const rollCallType = getRollCallTypeOnDate(date);
+    return rollCallType === '일반';
   };
-  
-  // 해당 날짜에 청소 점호가 있는지 확인하는 함수 (격주 월요일)
+
+  // API에서 가져온 데이터로 청소 점호 여부 확인
   const hasCleaningRollCall = (date: Date) => {
-    if (!isMonday(date)) return false;
-    
-    // 2024년 1월 1일을 기준으로 격주 계산
-    const baseDate = new Date(2024, 0, 1); // 2024년 1월 1일
-    const timeDiff = date.getTime() - baseDate.getTime();
-    const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-    const weeksDiff = Math.floor(daysDiff / 7);
-    
-    // 홀수 주차에 청소 점호
-    return weeksDiff % 2 === 1;
+    const rollCallType = getRollCallTypeOnDate(date);
+    return rollCallType === '청소';
   };
-  
+
+  // 관비 납부 마감 일정이 있는지 확인
+  const hasPayment = (date: Date) => {
+    return hasPaymentOnDate(date);
+  };
+
+  // 월이 변경될 때마다 전체 일정 다시 로드
+  useEffect(() => {
+    loadAllEvents();
+  }, [year, month, loadAllEvents]);
+
   // 이전 달로 이동
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
   };
-  
+
   // 다음 달로 이동
   const goToNextMonth = () => {
     setCurrentDate(new Date(year, month + 1, 1));
   };
-  
+
   // 날짜 선택
   const selectDate = (day: number) => {
     const selectedDate = new Date(year, month, day);
     onDateSelect?.(selectedDate);
   };
-  
+
   // 달력 날짜들 생성
   const renderCalendarDays = () => {
     const days = [];
     const daysInMonth = lastDay.getDate();
-    
+
     // 빈 칸들 (이전 달의 마지막 주)
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.push(
-        <View key={`empty-${i}`} style={styles.dayContainer}>
+        <View key={`empty-${year}-${month}-empty-${i}`} style={styles.dayContainer}>
           <Text style={styles.emptyDay}></Text>
-        </View>
+        </View>,
       );
     }
-    
+
     // 해당 월의 날짜들
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const isTodayDay = isToday(date);
       const hasRegular = hasRegularRollCall(date);
       const hasCleaning = hasCleaningRollCall(date);
-      
+      const hasPaymentEvent = hasPayment(date);
+
       days.push(
         <TouchableOpacity
-          key={day}
-          style={[
-            styles.dayContainer,
-            isTodayDay && styles.todayContainer
-          ]}
+          key={`${year}-${month}-${day}`}
+          style={styles.dayContainer}
           onPress={() => selectDate(day)}
         >
-          <Text style={[
-            styles.dayText,
-            isTodayDay && styles.todayText
-          ]}>
-            {day}
-          </Text>
-          {hasRegular && !hasCleaning && (
-            <View style={[
-              styles.regularRollCallDot,
-              isTodayDay && styles.regularRollCallDotToday
-            ]} />
+          {isTodayDay ? (
+            <View style={styles.todayContainer}>
+              <Text style={[styles.dayText, styles.todayText]}>{day}</Text>
+            </View>
+          ) : (
+            <Text style={styles.dayText}>{day}</Text>
           )}
-          {hasCleaning && (
-            <View style={[
-              styles.cleaningRollCallDot,
-              isTodayDay && styles.cleaningRollCallDotToday
-            ]} />
-          )}
-        </TouchableOpacity>
+          <View style={styles.dotsRow}>
+            {hasRegular && <View style={[styles.dotBase, styles.dotRegular]} />}
+            {hasCleaning && <View style={[styles.dotBase, styles.dotCleaning]} />}
+            {hasPaymentEvent && <View style={[styles.dotBase, styles.dotPayment]} />}
+          </View>
+        </TouchableOpacity>,
       );
     }
-    
+
     return days;
   };
-  
+
   const monthNames = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월'
+    '1월',
+    '2월',
+    '3월',
+    '4월',
+    '5월',
+    '6월',
+    '7월',
+    '8월',
+    '9월',
+    '10월',
+    '11월',
+    '12월',
   ];
-  
+
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-  
+
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
           <Text style={styles.navButtonText}>‹</Text>
         </TouchableOpacity>
-        
+
         <ThemedText style={styles.monthYear}>
           {year}년 {monthNames[month]}
         </ThemedText>
-        
+
         <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
           <Text style={styles.navButtonText}>›</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.weekDaysContainer}>
         {weekDays.map((day, index) => (
           <View key={day} style={styles.weekDayContainer}>
-            <Text style={[
-              styles.weekDayText,
-              index === 0 && styles.sundayText,
-              index === 1 && styles.mondayText
-            ]}>
+            <Text
+              style={[
+                styles.weekDayText,
+                index === 0 && styles.sundayText,
+                index === 1 && styles.mondayText,
+              ]}
+            >
               {day}
             </Text>
           </View>
         ))}
       </View>
-      
-      <View style={styles.calendarGrid}>
-        {renderCalendarDays()}
-      </View>
-      
+
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>일정을 불러오는 중...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>일정을 불러올 수 없습니다</Text>
+          <Text style={styles.errorSubText}>{error}</Text>
+        </View>
+      ) : (
+        <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
+      )}
+
       <View style={styles.legend}>
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
@@ -169,6 +194,10 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
           <View style={styles.legendItem}>
             <View style={styles.legendCleaningDot} />
             <Text style={styles.legendCleaningText}>청소 점호</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={styles.legendPaymentDot} />
+            <Text style={styles.legendPaymentText}>관비 납부 마감</Text>
           </View>
         </View>
       </View>
@@ -191,7 +220,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     overflow: 'hidden',
-    height: 420, // 범례를 포함한 전체 높이로 조정
+    height: 460, // 범례를 포함한 전체 높이로 조정
   },
   header: {
     flexDirection: 'row',
@@ -235,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.02)',
   },
   weekDayContainer: {
-    flex: 1,
+    width: '14.28%',
     alignItems: 'center',
   },
   weekDayText: {
@@ -253,13 +282,13 @@ const styles = StyleSheet.create({
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    height: 240, // 범례 공간을 위해 높이 조정
+    height: 280, // 더 많은 공간 확보
   },
   dayContainer: {
     width: '14.28%',
-    aspectRatio: 1,
+    height: 40, // aspectRatio 대신 고정 높이 사용
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -274,8 +303,12 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
   },
   todayContainer: {
-    backgroundColor: '#007AFF',
-    borderRadius: 22,
+    width: 28,
+    height: 28,
+    borderRadius: 18,
+    backgroundColor: '#6296ffff',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#007AFF',
     shadowOffset: {
       width: 0,
@@ -290,44 +323,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   regularRollCallDot: {
-    position: 'absolute',
-    bottom: -6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFD700',
-    shadowColor: '#FFD700',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  regularRollCallDotToday: {
-    backgroundColor: 'white',
-    shadowColor: 'white',
+    display: 'none',
   },
   cleaningRollCallDot: {
-    position: 'absolute',
-    bottom: -6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#007AFF',
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cleaningRollCallDotToday: {
-    backgroundColor: 'white',
-    shadowColor: 'white',
+    display: 'none',
   },
   legend: {
     marginTop: 8,
@@ -371,5 +370,78 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#007AFF',
+  },
+  paymentDot: {
+    display: 'none',
+  },
+  dotsRow: {
+    position: 'absolute',
+    bottom: 2,
+    flexDirection: 'row',
+    gap: 2,
+  },
+  dotBase: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dotRegular: {
+    backgroundColor: '#FFD700',
+    shadowColor: '#FFD700',
+  },
+  dotCleaning: {
+    backgroundColor: '#007AFF',
+    shadowColor: '#007AFF',
+  },
+  dotPayment: {
+    backgroundColor: '#34C759',
+    shadowColor: '#34C759',
+  },
+  legendPaymentDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#34C759',
+    marginRight: 8,
+  },
+  legendPaymentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#34C759',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF3B30',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  errorSubText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#8E8E93',
+    textAlign: 'center',
   },
 });

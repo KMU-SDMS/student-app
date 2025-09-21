@@ -1,62 +1,182 @@
-import React from 'react';
-import { StyleSheet, View, FlatList, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-
-// 더 많은 공지사항을 위한 목 데이터
-const allNotices = [
-  { id: 1, title: '앱 업데이트 안내', date: '2024-01-15', isImportant: true, content: '새로운 기능이 추가되었습니다. 자세한 내용은 설정에서 확인해주세요.' },
-  { id: 2, title: '서비스 점검 안내', date: '2024-01-10', isImportant: false, content: '1월 20일 오전 2시~4시 서비스 점검이 예정되어 있습니다.' },
-  { id: 3, title: '이벤트 공지', date: '2024-01-05', isImportant: false, content: '신규 사용자 대상 이벤트가 진행 중입니다. 많은 참여 부탁드립니다.' },
-  { id: 4, title: '동계 방학 중 기숙사 운영 안내', date: '2023-12-20', isImportant: true, content: '동계 방학 기간 중 기숙사 운영 시간을 안내드립니다. 자세한 내용은 공지를 확인해주세요.' },
-  { id: 5, title: '분실물 찾아가세요', date: '2023-12-18', isImportant: false, content: '학생회관 1층에서 보관 중인 분실물 목록입니다. 기간 내에 찾아가시길 바랍니다.' },
-  { id: 6, title: '기숙사 만족도 조사 참여 요청', date: '2023-12-15', isImportant: false, content: '기숙사 운영 개선을 위한 만족도 조사를 실시합니다. 많은 참여 부탁드립니다.' },
-  { id: 7, title: '연말 소등 행사 안내', date: '2023-12-12', isImportant: false, content: '12월 31일 23시 50분부터 10분간 전체 소등 행사가 진행됩니다.' },
-];
+import { getNotices } from '@/services/apiService';
+import { Notice, NoticesResponse } from '@/types/notice';
 
 export default function NoticesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasMorePages, setHasMorePages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const renderItem = ({ item }: { item: typeof allNotices[0] }) => (
-    <View style={[styles.noticeItem, item.isImportant && styles.importantNotice]}>
-        <View style={styles.noticeHeader}>
-            <View style={styles.noticeTitleContainer}>
-            {item.isImportant && (
-                <View style={styles.importantBadge}>
-                <Text style={styles.importantText}>중요</Text>
-                </View>
-            )}
-            <ThemedText style={styles.noticeTitle} numberOfLines={1}>
-                {item.title}
-            </ThemedText>
+  const fetchNotices = async (page: number = 1, append: boolean = false) => {
+    try {
+      if (append) {
+        setIsLoadingMore(true);
+      } else if (page === 1) {
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+
+      const response: NoticesResponse = await getNotices(page);
+
+      if (append) {
+        setNotices((prev) => [...prev, ...response.notices]);
+      } else {
+        setNotices(response.notices);
+      }
+
+      // 페이지 정보 업데이트 - API 응답의 now_page와 total_page 비교
+      setTotalPages(response.page_info.total_page);
+      setCurrentPage(response.page_info.now_page);
+      setHasMorePages(response.page_info.now_page < response.page_info.total_page);
+
+      console.log('Page info:', {
+        currentPage: response.page_info.now_page,
+        totalPages: response.page_info.total_page,
+        totalNotices: response.page_info.total_notice,
+        hasMorePages: response.page_info.now_page < response.page_info.total_page,
+        noticesCount: response.notices.length,
+      });
+    } catch (error) {
+      console.error('Failed to fetch notices:', error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotices(1, false);
+  }, []);
+
+  const loadMoreNotices = () => {
+    if (!isLoadingMore && !isLoading && hasMorePages) {
+      const nextPage = currentPage + 1;
+      fetchNotices(nextPage, true);
+    }
+  };
+
+  const refreshNotices = () => {
+    setCurrentPage(1);
+    setTotalPages(0);
+    setHasMorePages(true);
+    setNotices([]); // 기존 데이터 초기화
+    fetchNotices(1, false);
+  };
+
+  const handleNoticePress = (notice: Notice) => {
+    router.push({
+      pathname: '/notice-detail',
+      params: {
+        id: notice.id.toString(),
+        title: notice.title,
+        content: notice.content,
+        date: notice.date,
+        is_important: notice.is_important.toString(),
+      },
+    });
+  };
+
+  const renderItem = ({ item }: { item: Notice }) => (
+    <TouchableOpacity
+      style={[styles.noticeItem, item.is_important && styles.importantNotice]}
+      onPress={() => handleNoticePress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.noticeHeader}>
+        <View style={styles.noticeTitleContainer}>
+          {item.is_important && (
+            <View style={styles.importantBadge}>
+              <Text style={styles.importantText}>중요</Text>
             </View>
-            <ThemedText style={styles.noticeDate}>{item.date}</ThemedText>
+          )}
+          <ThemedText style={styles.noticeTitle} numberOfLines={2}>
+            {item.title}
+          </ThemedText>
         </View>
-        <View style={styles.noticeContent}>
-            <ThemedText style={styles.contentText}>
-                {item.content}
-            </ThemedText>
-        </View>
-    </View>
+        <ThemedText style={styles.noticeDate}>
+          {new Date(item.date).toISOString().split('T')[0]}
+        </ThemedText>
+      </View>
+    </TouchableOpacity>
   );
 
-  return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+  const renderContent = () => {
+    if (isLoading) {
+      return <ActivityIndicator size="large" style={styles.loadingIndicator} />;
+    }
+
+    if (notices.length === 0) {
+      return <ThemedText style={styles.emptyText}>등록된 공지사항이 없습니다.</ThemedText>;
+    }
+
+    return (
       <FlatList
-        data={allNotices}
+        data={notices}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={() => (
-            <ThemedText type="title" style={styles.title}>전체 공지사항</ThemedText>
+          <ThemedText type="title" style={styles.title}>
+            전체 공지사항
+          </ThemedText>
         )}
+        ListFooterComponent={() => {
+          if (isLoadingMore) {
+            return <ActivityIndicator size="small" style={styles.loadingMoreIndicator} />;
+          }
+          if (!hasMorePages && notices.length > 0) {
+            return (
+              <ThemedText style={styles.noMoreText}>
+                모든 공지사항을 불러왔습니다. ({notices.length}개)
+              </ThemedText>
+            );
+          }
+          if (totalPages > 0) {
+            return (
+              <ThemedText style={styles.pageInfoText}>
+                {currentPage} / {totalPages} 페이지
+              </ThemedText>
+            );
+          }
+          return null;
+        }}
+        onEndReached={loadMoreNotices}
+        onEndReachedThreshold={0.5}
+        refreshing={isRefreshing}
+        onRefresh={refreshNotices}
       />
-      <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { top: insets.top + 10 }]}>
+    );
+  };
+
+  return (
+    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {renderContent()}
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={[styles.backButton, { top: insets.top + 10 }]}
+      >
         <View style={styles.backButtonCircle}>
-            <Text style={styles.backButtonText}>‹</Text>
+          <Text style={styles.backButtonText}>‹</Text>
         </View>
       </TouchableOpacity>
     </ThemedView>
@@ -76,24 +196,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+  },
   backButton: {
-      position: 'absolute',
-      left: 20,
-      zIndex: 1,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   backButtonCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-      justifyContent: 'center',
-      alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButtonText: {
-      color: '#000',
-      fontSize: 24,
-      fontWeight: 'bold',
-      lineHeight: 40, // Center the chevron vertically
+    color: '#000',
+    fontSize: 24,
+    fontWeight: 'bold',
+    lineHeight: 40, // Center the chevron vertically
   },
   noticeItem: {
     backgroundColor: '#FFFFFF',
@@ -110,8 +240,7 @@ const styles = StyleSheet.create({
   noticeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    alignItems: 'center',
   },
   noticeTitleContainer: {
     flex: 1,
@@ -140,14 +269,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.7,
   },
-  noticeContent: {
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+  loadingMoreIndicator: {
+    paddingVertical: 20,
   },
-  contentText: {
+  noMoreText: {
+    textAlign: 'center',
+    paddingVertical: 20,
     fontSize: 14,
-    lineHeight: 20,
-    opacity: 0.8,
+    opacity: 0.6,
+  },
+  pageInfoText: {
+    textAlign: 'center',
+    paddingVertical: 10,
+    fontSize: 12,
+    opacity: 0.5,
   },
 });

@@ -4,15 +4,15 @@ export const LARGE_SCREEN_HEIGHT_THRESHOLD = 900;
 
 // 카메라 뷰 크기 설정
 export const CAMERA_VIEW_WIDTH = {
-  small: "98%" as const,
-  medium: "90%" as const,
-  large: "80%" as const,
+  small: '98%' as const,
+  medium: '90%' as const,
+  large: '80%' as const,
 };
 
 export const CAMERA_VIEW_HEIGHT = {
-  small: "80%" as const,
-  medium: "70%" as const,
-  large: "60%" as const,
+  small: '80%' as const,
+  medium: '70%' as const,
+  large: '60%' as const,
 };
 
 // 컨트롤 및 안내 텍스트 오프셋

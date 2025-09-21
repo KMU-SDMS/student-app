@@ -17,19 +17,17 @@ export interface ImageInfo {
  * @param imageUri - 보정할 이미지 URI
  * @returns orientation이 보정된 이미지 정보
  */
-export const correctImageOrientation = async (
-  imageUri: string
-): Promise<ImageInfo> => {
-  const { manipulateAsync } = await import("expo-image-manipulator");
+export const correctImageOrientation = async (imageUri: string): Promise<ImageInfo> => {
+  const { manipulateAsync } = await import('expo-image-manipulator');
 
   // orientation 보정을 위해 이미지를 한 번 처리
   const correctedImage = await manipulateAsync(
     imageUri,
     [], // 빈 배열로 orientation만 보정
     {
-      format: "jpeg" as any,
+      format: 'jpeg' as any,
       compress: 1.0, // 최고 품질로 보정
-    }
+    },
   );
 
   return {
@@ -53,7 +51,7 @@ export const calculateImageCropArea = (
   cropArea: CropArea,
   cameraViewWidth: number,
   cameraViewHeight: number,
-  insets: { top: number; bottom: number }
+  insets: { top: number; bottom: number },
 ): CropArea => {
   // 카메라 뷰 기준으로 좌표 변환
   const cameraCropArea = {
@@ -68,10 +66,7 @@ export const calculateImageCropArea = (
   const imageAspectRatio = imageInfo.width / imageInfo.height;
 
   // aspect ratio가 다를 경우, 이미지가 카메라 뷰에 어떻게 맞춰지는지 계산
-  let imageDisplayWidth: number,
-    imageDisplayHeight: number,
-    offsetX: number,
-    offsetY: number;
+  let imageDisplayWidth: number, imageDisplayHeight: number, offsetX: number, offsetY: number;
 
   if (imageAspectRatio > cameraAspectRatio) {
     // 이미지가 더 넓은 경우 - 높이에 맞춤
@@ -100,14 +95,8 @@ export const calculateImageCropArea = (
 
   // 크롭 영역이 이미지 범위를 벗어나지 않도록 검증
   return {
-    x: Math.max(
-      0,
-      Math.min(imageCropArea.x, imageInfo.width - imageCropArea.width)
-    ),
-    y: Math.max(
-      0,
-      Math.min(imageCropArea.y, imageInfo.height - imageCropArea.height)
-    ),
+    x: Math.max(0, Math.min(imageCropArea.x, imageInfo.width - imageCropArea.width)),
+    y: Math.max(0, Math.min(imageCropArea.y, imageInfo.height - imageCropArea.height)),
     width: Math.min(imageCropArea.width, imageInfo.width),
     height: Math.min(imageCropArea.height, imageInfo.height),
   };
@@ -119,22 +108,19 @@ export const calculateImageCropArea = (
  * @param imageInfo - 이미지 정보
  * @throws 크롭 영역이 유효하지 않은 경우 에러를 던집니다
  */
-export const validateCropArea = (
-  cropArea: CropArea,
-  imageInfo: ImageInfo
-): void => {
+export const validateCropArea = (cropArea: CropArea, imageInfo: ImageInfo): void => {
   if (cropArea.width <= 0 || cropArea.height <= 0) {
-    throw new Error("Invalid crop area: width or height is zero or negative");
+    throw new Error('Invalid crop area: width or height is zero or negative');
   }
 
   if (cropArea.x < 0 || cropArea.y < 0) {
-    throw new Error("Invalid crop area: x or y is negative");
+    throw new Error('Invalid crop area: x or y is negative');
   }
 
   if (
     cropArea.x + cropArea.width > imageInfo.width ||
     cropArea.y + cropArea.height > imageInfo.height
   ) {
-    throw new Error("Invalid crop area: exceeds image boundaries");
+    throw new Error('Invalid crop area: exceeds image boundaries');
   }
 };

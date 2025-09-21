@@ -3,5 +3,5 @@ export type AnalysisRouteParams = {
 };
 
 export type RouteParams = {
-  "/analysis": AnalysisRouteParams;
+  '/analysis': AnalysisRouteParams;
 };
