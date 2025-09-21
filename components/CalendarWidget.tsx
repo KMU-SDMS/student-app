@@ -110,9 +110,11 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
           ) : (
             <Text style={styles.dayText}>{day}</Text>
           )}
-          {hasRegular && !hasCleaning && <View style={styles.regularRollCallDot} />}
-          {hasCleaning && <View style={styles.cleaningRollCallDot} />}
-          {hasPaymentEvent && !hasRegular && !hasCleaning && <View style={styles.paymentDot} />}
+          <View style={styles.dotsRow}>
+            {hasRegular && <View style={[styles.dotBase, styles.dotRegular]} />}
+            {hasCleaning && <View style={[styles.dotBase, styles.dotCleaning]} />}
+            {hasPaymentEvent && <View style={[styles.dotBase, styles.dotPayment]} />}
+          </View>
         </TouchableOpacity>,
       );
     }
@@ -321,36 +323,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   regularRollCallDot: {
-    position: 'absolute',
-    bottom: 2, // bottom: -6에서 2로 변경하여 컨테이너 내부에 위치
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#FFD700',
-    shadowColor: '#FFD700',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
+    display: 'none',
   },
   cleaningRollCallDot: {
-    position: 'absolute',
-    bottom: 2, // bottom: -6에서 2로 변경하여 컨테이너 내부에 위치
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#007AFF',
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
+    display: 'none',
   },
   legend: {
     marginTop: 8,
@@ -396,20 +372,34 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   paymentDot: {
+    display: 'none',
+  },
+  dotsRow: {
     position: 'absolute',
     bottom: 2,
+    flexDirection: 'row',
+    gap: 2,
+  },
+  dotBase: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#34C759',
-    shadowColor: '#34C759',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
     shadowRadius: 2,
     elevation: 2,
+  },
+  dotRegular: {
+    backgroundColor: '#FFD700',
+    shadowColor: '#FFD700',
+  },
+  dotCleaning: {
+    backgroundColor: '#007AFF',
+    shadowColor: '#007AFF',
+  },
+  dotPayment: {
+    backgroundColor: '#34C759',
+    shadowColor: '#34C759',
   },
   legendPaymentDot: {
     width: 8,
