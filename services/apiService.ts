@@ -1,4 +1,5 @@
 import { Notice, NoticesResponse, PageInfo } from '../types/notice';
+import { CalendarEvent, CalendarResponse } from '../types/calendar';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL as string;
 
@@ -70,5 +71,31 @@ export const getNoticeById = async (id: number): Promise<Notice | null> => {
   } catch (error) {
     console.error('Error in getNoticeById function:', error);
     return null;
+  }
+};
+
+// 캘린더 일정 조회 (전체 또는 특정 날짜)
+export const getCalendarEvents = async (date?: string): Promise<CalendarResponse> => {
+  try {
+    const url = date ? `${BASE_URL}/calendar?date=${date}` : `${BASE_URL}/calendar`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('Calendar API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorBody,
+      });
+      throw new Error(`Failed to fetch calendar events with status: ${response.status}`);
+    }
+
+    const result = (await response.json()) as CalendarResponse;
+    console.log('Received calendar events from API:', result);
+
+    return result;
+  } catch (error) {
+    console.error('Error in getCalendarEvents function:', error);
+    return [];
   }
 };

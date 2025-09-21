@@ -102,3 +102,44 @@ json
 
 { "error": "Notice ID is required." }
 { "error": "Notice not found" }
+
+캘린더 API
+
+1. 일정 조회
+
+- path: /calendar
+- 기능: 전체 또는 특정 날짜의 일정 조회
+- request
+  - 쿼리 파라미터: date (선택)
+  - 예: /calendar (전체)
+  - 예: /calendar?date=2025-09-20 (2025년 9월 20일의 일정을 조회)
+- method: GET
+- 전체 일정 response
+
+[
+{
+"id": 2,
+"date": "2025-09-19",
+"rollCallType": null,
+"paymentType": "가스"
+},
+{
+"id": 6,
+"date": "2025-09-29",
+"rollCallType": "일반",
+"paymentType": "수도"
+}
+]
+
+- date 파라미터 사용 response
+
+[
+{
+"id": 2,
+"date": "2025-09-19",
+"rollCallType": null,
+"paymentType": "가스"
+}
+]
+
+물론 하루에 일정이 두 개일 경우도 존재한다.

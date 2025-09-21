@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
+import { useCalendar } from '../hooks/useCalendar';
 
 interface CalendarWidgetProps {
   onDateSelect?: (date: Date) => void;
@@ -9,6 +10,15 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const {
+    isLoading,
+    error,
+    hasRollCallOnDate,
+    getRollCallTypeOnDate,
+    hasPaymentOnDate,
+    getPaymentTypeOnDate,
+    loadAllEvents,
+  } = useCalendar();
 
   const today = new Date();
   const year = currentDate.getFullYear();
@@ -19,11 +29,6 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const lastDay = new Date(year, month + 1, 0);
   const firstDayOfWeek = firstDay.getDay(); // 0: 일요일, 1: 월요일, ...
 
-  // 월요일인지 확인하는 함수
-  const isMonday = (date: Date) => {
-    return date.getDay() === 1;
-  };
-
   // 오늘인지 확인하는 함수 (연/월/일 단위로 비교)
   const isSameYMD = (a: Date, b: Date) =>
     a.getFullYear() === b.getFullYear() &&
@@ -32,24 +37,27 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
 
   const isToday = (date: Date) => isSameYMD(date, today);
 
-  // 해당 날짜에 일반 점호가 있는지 확인하는 함수
+  // API에서 가져온 데이터로 점호 여부 확인
   const hasRegularRollCall = (date: Date) => {
-    return isMonday(date);
+    const rollCallType = getRollCallTypeOnDate(date);
+    return rollCallType === '일반';
   };
 
-  // 해당 날짜에 청소 점호가 있는지 확인하는 함수 (격주 월요일)
+  // API에서 가져온 데이터로 청소 점호 여부 확인
   const hasCleaningRollCall = (date: Date) => {
-    if (!isMonday(date)) return false;
-
-    // 2024년 1월 1일을 기준으로 격주 계산
-    const baseDate = new Date(2024, 0, 1); // 2024년 1월 1일
-    const timeDiff = date.getTime() - baseDate.getTime();
-    const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-    const weeksDiff = Math.floor(daysDiff / 7);
-
-    // 홀수 주차에 청소 점호
-    return weeksDiff % 2 === 1;
+    const rollCallType = getRollCallTypeOnDate(date);
+    return rollCallType === '청소';
   };
+
+  // 관비 납부 마감 일정이 있는지 확인
+  const hasPayment = (date: Date) => {
+    return hasPaymentOnDate(date);
+  };
+
+  // 월이 변경될 때마다 전체 일정 다시 로드
+  useEffect(() => {
+    loadAllEvents();
+  }, [year, month, loadAllEvents]);
 
   // 이전 달로 이동
   const goToPreviousMonth = () => {
@@ -87,6 +95,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
       const isTodayDay = isToday(date);
       const hasRegular = hasRegularRollCall(date);
       const hasCleaning = hasCleaningRollCall(date);
+      const hasPaymentEvent = hasPayment(date);
 
       days.push(
         <TouchableOpacity
@@ -103,6 +112,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
           )}
           {hasRegular && !hasCleaning && <View style={styles.regularRollCallDot} />}
           {hasCleaning && <View style={styles.cleaningRollCallDot} />}
+          {hasPaymentEvent && !hasRegular && !hasCleaning && <View style={styles.paymentDot} />}
         </TouchableOpacity>,
       );
     }
@@ -159,7 +169,19 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
         ))}
       </View>
 
-      <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>일정을 불러오는 중...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>일정을 불러올 수 없습니다</Text>
+          <Text style={styles.errorSubText}>{error}</Text>
+        </View>
+      ) : (
+        <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
+      )}
 
       <View style={styles.legend}>
         <View style={styles.legendContainer}>
@@ -170,6 +192,10 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
           <View style={styles.legendItem}>
             <View style={styles.legendCleaningDot} />
             <Text style={styles.legendCleaningText}>청소 점호</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={styles.legendPaymentDot} />
+            <Text style={styles.legendPaymentText}>관비 납부 마감</Text>
           </View>
         </View>
       </View>
@@ -368,5 +394,64 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#007AFF',
+  },
+  paymentDot: {
+    position: 'absolute',
+    bottom: 2,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#34C759',
+    shadowColor: '#34C759',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  legendPaymentDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#34C759',
+    marginRight: 8,
+  },
+  legendPaymentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#34C759',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF3B30',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  errorSubText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#8E8E93',
+    textAlign: 'center',
   },
 });
