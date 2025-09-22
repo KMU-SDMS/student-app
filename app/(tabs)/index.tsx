@@ -12,7 +12,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom }]}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 10 }]}
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={[styles.content, { paddingTop: insets.top + 20 }]}>
