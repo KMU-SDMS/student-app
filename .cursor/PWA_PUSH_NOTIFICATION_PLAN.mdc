@@ -11,8 +11,8 @@
 
 ### 1단계: 프론트엔드 설정
 
-- [ ] PWA Manifest 설정 업데이트
-- [ ] 서비스 워커 구현 (`public/sw.js`)
+- [x] PWA Manifest 설정 업데이트
+- [x] 서비스 워커 구현 (`public/sw.js`)
 - [ ] 푸시 알림 권한 요청 UI 컴포넌트
 - [ ] 푸시 구독 관리 훅 (`hooks/usePushNotification.ts`)
 - [ ] 알림 설정 페이지 추가
