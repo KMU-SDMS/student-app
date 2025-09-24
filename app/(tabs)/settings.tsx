@@ -1,12 +1,10 @@
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import CalendarWidget from '@/components/CalendarWidget';
-import NoticeSection from '@/components/NoticeSection';
-import MaintenancePayment from '@/components/MaintenancePayment';
+import NotificationPermission from '@/components/NotificationPermission';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
+export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
 
   return (
@@ -16,24 +14,16 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={[styles.content, { paddingTop: insets.top + 20 }]}>
-        {/* 환영 메시지 */}
-        <ThemedView style={styles.welcomeSection}>
-          <ThemedText type="title" style={styles.welcomeTitle}>
-            안녕하세요! 👋
+        <ThemedView style={styles.headerSection}>
+          <ThemedText type="title" style={styles.headerTitle}>
+            설정
           </ThemedText>
-          <ThemedText style={styles.welcomeSubtitle}>
-            스마트 기숙사 시스템에 오신 것을 환영합니다
-          </ThemedText>
+          <ThemedText style={styles.headerSubtitle}>알림 및 앱 설정을 관리합니다</ThemedText>
         </ThemedView>
 
-        {/* 캘린더 위젯 */}
-        <CalendarWidget />
-
-        {/* 공지사항 섹션 */}
-        <NoticeSection />
-
-        {/* 관리비 납부 섹션 */}
-        <MaintenancePayment />
+        <View style={styles.sectionContainer}>
+          <NotificationPermission showTitle={true} compact={false} />
+        </View>
       </ThemedView>
     </ScrollView>
   );
@@ -50,19 +40,17 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  welcomeSection: {
+  headerSection: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
-  welcomeTitle: {
+  headerTitle: {
     marginBottom: 8,
-    textAlign: 'center',
   },
-  welcomeSubtitle: {
+  headerSubtitle: {
     opacity: 0.7,
-    textAlign: 'center',
   },
   sectionContainer: {
     paddingHorizontal: 20,
