@@ -141,49 +141,51 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
-          <Text style={styles.navButtonText}>‹</Text>
-        </TouchableOpacity>
+      <View style={styles.cardBody}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
+            <Text style={styles.navButtonText}>‹</Text>
+          </TouchableOpacity>
 
-        <ThemedText style={styles.monthYear}>
-          {year}년 {monthNames[month]}
-        </ThemedText>
+          <ThemedText style={styles.monthYear}>
+            {year}년 {monthNames[month]}
+          </ThemedText>
 
-        <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-          <Text style={styles.navButtonText}>›</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
+            <Text style={styles.navButtonText}>›</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.weekDaysContainer}>
-        {weekDays.map((day, index) => (
-          <View key={day} style={styles.weekDayContainer}>
-            <Text
-              style={[
-                styles.weekDayText,
-                index === 0 && styles.sundayText,
-                index === 1 && styles.mondayText,
-              ]}
-            >
-              {day}
-            </Text>
+        <View style={styles.weekDaysContainer}>
+          {weekDays.map((day, index) => (
+            <View key={day} style={styles.weekDayContainer}>
+              <Text
+                style={[
+                  styles.weekDayText,
+                  index === 0 && styles.sundayText,
+                  index === 6 && styles.saturdayText,
+                ]}
+              >
+                {day}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={styles.loadingText}>일정을 불러오는 중...</Text>
           </View>
-        ))}
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>일정을 불러올 수 없습니다</Text>
+            <Text style={styles.errorSubText}>{error}</Text>
+          </View>
+        ) : (
+          <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
+        )}
       </View>
-
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>일정을 불러오는 중...</Text>
-        </View>
-      ) : error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>일정을 불러올 수 없습니다</Text>
-          <Text style={styles.errorSubText}>{error}</Text>
-        </View>
-      ) : (
-        <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
-      )}
 
       <View style={styles.legend}>
         <View style={styles.legendContainer}>
@@ -208,7 +210,8 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginTop: 8,
+    marginBottom: 15,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.95)',
     shadowColor: '#000',
@@ -220,7 +223,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     overflow: 'hidden',
-    height: 460, // 범례를 포함한 전체 높이로 조정
+  },
+  cardBody: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingBottom: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   header: {
     flexDirection: 'row',
@@ -275,7 +283,7 @@ const styles = StyleSheet.create({
   sundayText: {
     color: '#FF3B30',
   },
-  mondayText: {
+  saturdayText: {
     color: '#007AFF',
     fontWeight: '700',
   },
@@ -329,11 +337,14 @@ const styles = StyleSheet.create({
     display: 'none',
   },
   legend: {
-    marginTop: 8,
+    flex: 1,
+    marginTop: 0,
     paddingVertical: 12,
     paddingHorizontal: 20,
     backgroundColor: 'rgba(0,0,0,0.02)',
     alignItems: 'center',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   legendContainer: {
     flexDirection: 'row',
@@ -414,7 +425,7 @@ const styles = StyleSheet.create({
     color: '#34C759',
   },
   loadingContainer: {
-    flex: 1,
+    height: 280,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
@@ -426,7 +437,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   errorContainer: {
-    flex: 1,
+    height: 280,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,

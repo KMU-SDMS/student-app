@@ -53,10 +53,6 @@ export default function TabLayout() {
         accessibilityRole="tablist"
         style={{
           backgroundColor: 'rgba(255,255,255,0.97)',
-          borderTopWidth: 1,
-          borderTopColor: 'rgba(0,0,0,0.08)',
-          // 바를 화면에서 아주 조금 아래로 내리기 위해 상단 마진 추가
-          marginTop: 4,
           // 콘텐츠를 위로 붙이기 위해 상단 패딩을 줄이고 하단 패딩을 늘림
           paddingTop: 6,
           paddingBottom: Math.max(14, insets.bottom),
