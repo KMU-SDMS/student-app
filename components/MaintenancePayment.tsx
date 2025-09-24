@@ -118,7 +118,8 @@ export default function MaintenancePayment() {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginTop: 0,
+    marginBottom: 8,
   },
   header: {
     flexDirection: 'row',

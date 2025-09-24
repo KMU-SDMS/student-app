@@ -10,7 +10,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 10 }]}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom }]}
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={[styles.content, { paddingTop: insets.top + 20 }]}>
