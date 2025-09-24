@@ -1,0 +1,276 @@
+# PWA 푸시 알림 구현 계획서
+
+## 📋 프로젝트 개요
+
+- **목표**: 새로운 공지사항 등록 시 사용자에게 푸시 알림 발송
+- **기술 스택**: React Native (Expo) + AWS Lambda + Supabase
+- **배포 방식**: PWA (Progressive Web App)
+- **개발 전략**: MVP 접근법으로 핵심 기능부터 구현
+
+## 🎯 구현 범위
+
+### 1단계: 프론트엔드 설정
+
+- [x] PWA Manifest 설정 업데이트
+- [x] 서비스 워커 구현 (`public/sw.js`)
+- [x] 브라우저에 푸시 알림 권한 요청 기능 구현
+- [x] 푸시 구독 관리 훅 (`hooks/usePushNotification.ts`)
+- [x] 알림 설정 페이지 추가
+
+### 2단계: 백엔드 설정
+
+- [ ] Supabase 테이블 설계 및 생성
+- [ ] AWS Lambda 함수 구현
+- [ ] VAPID 키 생성 및 관리
+- [ ] 공지사항 등록 API 수정
+- [ ] 구독 정리 로직 구현
+
+### 3단계: 통합 및 테스트
+
+- [ ] 프론트엔드-백엔드 연동
+- [ ] 푸시 알림 테스트
+- [ ] 에러 처리 및 로깅
+- [ ] 성능 최적화
+- [ ] 구독 데이터 정리 테스트
+
+## 🗄️ 데이터베이스 설계 (Supabase)
+
+### 테이블 1: `push_subscriptions`
+
+```sql
+CREATE TABLE push_subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subscription JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  is_active BOOLEAN DEFAULT true,
+  expires_at TIMESTAMP WITH TIME ZONE -- 구독 만료 시간
+);
+```
+
+### 테이블 2: `notification_logs`
+
+```sql
+CREATE TABLE notification_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  notice_id UUID,
+  subscription_id UUID REFERENCES push_subscriptions(id),
+  status VARCHAR(20) NOT NULL, -- 'sent', 'failed', 'pending'
+  error_message TEXT,
+  sent_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### 테이블 3: `notices` (기존 테이블 수정)
+
+```sql
+-- 기존 notices 테이블에 컬럼 추가
+ALTER TABLE notices ADD COLUMN push_sent BOOLEAN DEFAULT false;
+ALTER TABLE notices ADD COLUMN push_sent_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE notices ADD COLUMN subscribers_count INTEGER DEFAULT 0;
+```
+
+## 🔧 AWS Lambda 함수 설계
+
+### 함수 1: `sendPushNotification`
+
+- **트리거**: Supabase Realtime (notices 테이블 INSERT)
+- **기능**:
+  - 새 공지사항 감지
+  - 활성 구독자 조회
+  - 푸시 메시지 발송
+  - 발송 로그 기록
+  - 구독자 통계 업데이트
+
+### 함수 2: `manageSubscriptions`
+
+- **트리거**: API Gateway
+- **기능**:
+  - 구독 정보 저장/삭제
+  - 만료된 구독 정리
+  - 구독 상태 관리
+  - 중복 구독 방지
+
+## 📱 프론트엔드 구현 상세
+
+### 1. 서비스 워커 (`public/sw.js`)
+
+```javascript
+// 주요 기능:
+// - 푸시 이벤트 리스너
+// - 알림 표시 및 클릭 처리
+// - 백그라운드 동기화
+```
+
+### 2. 푸시 알림 훅 (`hooks/usePushNotification.ts`)
+
+```typescript
+// 주요 기능:
+// - 브라우저 지원 확인
+// - 알림 권한 요청
+// - 푸시 구독 생성
+// - 구독 정보 서버 전송
+```
+
+### 3. 알림 설정 컴포넌트
+
+```tsx
+// 위치: app/(tabs)/settings.tsx 또는 새 페이지
+// 기능:
+// - 알림 활성화/비활성화
+// - 구독 상태 표시
+// - 테스트 알림 발송
+// - 구독 해지 기능
+```
+
+## 🔐 보안 및 설정
+
+### VAPID 키 관리
+
+- **개발**: 환경변수 또는 AWS Secrets Manager
+- **프로덕션**: AWS Secrets Manager
+- **키 로테이션**: 정기적 키 교체 계획
+
+### 권한 설정
+
+- **Supabase RLS**: 구독 정보 접근 제한
+- **Lambda 권한**: Supabase 접근 및 푸시 발송 권한
+- **CORS 설정**: PWA 도메인 허용
+- **구독 제한**: IP 기반 스팸 방지
+
+## 📊 모니터링 및 로깅
+
+### CloudWatch 로그
+
+- Lambda 실행 로그
+- 푸시 발송 성공/실패 로그
+- 에러 추적
+
+### Supabase 로그
+
+- 구독 정보 변경 로그
+- 공지사항 등록 로그
+- 알림 발송 로그
+- 사용자 통계 로그
+
+## 🚀 배포 계획
+
+### 1단계: 개발 환경
+
+- [ ] 로컬 개발 서버에서 테스트
+- [ ] VAPID 키 생성 및 설정
+- [ ] Supabase 개발 DB 설정
+
+### 2단계: 스테이징 환경
+
+- [ ] AWS Lambda 배포
+- [ ] PWA 빌드 및 배포
+- [ ] 통합 테스트
+
+### 3단계: 프로덕션 배포
+
+- [ ] 프로덕션 VAPID 키 설정
+- [ ] 도메인 설정
+- [ ] 모니터링 설정
+
+## ⚠️ 주의사항 및 제한사항
+
+### 브라우저 제한사항
+
+- **Chrome/Edge**: 완전 지원
+- **Firefox**: 지원 (일부 제한)
+- **Safari**: iOS 16.4+ 지원
+- **모바일 브라우저**: 제한적 지원
+
+### 사용자 경험
+
+- **권한 요청**: 사용자 동의 필요
+- **배터리 최적화**: 일부 기기에서 알림 지연 가능
+- **네트워크**: 오프라인 상태에서는 알림 수신 불가
+
+## 📈 성능 최적화
+
+### 배치 처리
+
+- 구독자 수가 많을 경우 배치로 푸시 발송
+- Lambda 동시 실행 제한 고려
+
+### 캐싱
+
+- 구독자 정보 캐싱
+- VAPID 키 캐싱
+
+### 에러 처리
+
+- 실패한 푸시 재시도 로직
+- 만료된 구독 자동 정리
+
+## 🧪 테스트 계획
+
+### 단위 테스트
+
+- [ ] 푸시 구독 로직 테스트
+- [ ] 서비스 워커 테스트
+- [ ] Lambda 함수 테스트
+
+### 통합 테스트
+
+- [ ] 전체 푸시 알림 플로우 테스트
+- [ ] 다양한 브라우저에서 테스트
+- [ ] 모바일 기기에서 테스트
+
+### 사용자 테스트
+
+- [ ] 실제 사용자 대상 테스트
+- [ ] 알림 수신률 측정
+- [ ] 사용자 피드백 수집
+
+## 📅 일정 계획
+
+### Week 1: 프론트엔드 구현
+
+- 서비스 워커 구현
+- 푸시 알림 훅 구현
+- UI 컴포넌트 구현
+
+### Week 2: 백엔드 구현
+
+- Supabase 테이블 생성
+- Lambda 함수 구현
+- API 연동
+
+### Week 3: 통합 및 테스트
+
+- 전체 시스템 통합
+- 테스트 및 디버깅
+- 성능 최적화
+- 구독 데이터 정리 테스트
+
+### Week 4: 배포 및 모니터링
+
+- 프로덕션 배포
+- 모니터링 설정
+- 사용자 가이드 작성
+- 구독 통계 대시보드
+
+## 🔄 유지보수 계획
+
+### 정기 작업
+
+- [ ] 만료된 구독 정리 (주 1회)
+- [ ] VAPID 키 로테이션 (분기 1회)
+- [ ] 성능 모니터링 (주 1회)
+- [ ] 구독 통계 분석 (월 1회)
+
+### 업데이트 계획
+
+- [ ] 브라우저 지원 업데이트
+- [ ] 보안 패치 적용
+- [ ] 사용자 피드백 반영
+- [ ] 로그인 시스템 통합 (추후)
+- [ ] 사용자별 알림 설정 (추후)
+
+---
+
+**버전**: 1.0 (기본 푸시 알림)

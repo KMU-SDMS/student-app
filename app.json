@@ -7,11 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "postscan",
     "userInterfaceStyle": "automatic",
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "platforms": ["ios", "android", "web"],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -51,6 +47,9 @@
         }
       ]
     ],
+    "extra": {
+      "vapidPublicKey": ""
+    },
     "experiments": {
       "typedRoutes": true
     }
