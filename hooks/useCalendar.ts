@@ -20,8 +20,23 @@ export function useCalendar() {
     try {
       setIsLoading(true);
       setError(null);
+
+      // 먼저 미리 로드된 데이터 확인
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const preloadedData = localStorage.getItem('preloaded_calendar');
+        if (preloadedData) {
+          const allEvents = JSON.parse(preloadedData);
+          setEvents(allEvents);
+          setIsLoading(false);
+          console.log('useCalendar: 미리 로드된 캘린더 데이터 사용');
+          return;
+        }
+      }
+
+      // 미리 로드된 데이터가 없으면 API 호출
       const allEvents = await getCalendarEvents();
       setEvents(allEvents);
+      console.log('useCalendar: API에서 캘린더 데이터 새로 로드');
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '캘린더 일정을 불러오는데 실패했습니다.';
