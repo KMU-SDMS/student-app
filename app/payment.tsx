@@ -12,6 +12,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 // 임시 데이터
 const paymentDetails = {
@@ -29,6 +31,9 @@ const bankAccounts = [
 export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'light';
+  const palette = Colors[colorScheme];
+  const isDark = colorScheme === 'dark';
 
   const handlePaymentComplete = () => {
     Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다. 홈 화면으로 이동합니다.', [
@@ -42,14 +47,25 @@ export default function PaymentScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+    <ThemedView
+      style={[
+        styles.container,
+        { paddingTop: insets.top },
+        isDark ? { backgroundColor: palette.background } : null,
+      ]}
+    >
       {/* 뒤로가기 버튼 */}
       <TouchableOpacity
         onPress={() => router.back()}
         style={[styles.backButton, { top: insets.top + 10 }]}
       >
-        <View style={styles.backButtonCircle}>
-          <Text style={styles.backButtonText}>‹</Text>
+        <View
+          style={[
+            styles.backButtonCircle,
+            { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0, 0, 0, 0.05)' },
+          ]}
+        >
+          <Text style={[styles.backButtonText, { color: isDark ? palette.text : '#000' }]}>‹</Text>
         </View>
       </TouchableOpacity>
 
@@ -59,38 +75,109 @@ export default function PaymentScreen() {
           관리비 납부
         </ThemedText>
 
-        <View style={styles.card}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
+        <View
+          style={[
+            styles.card,
+            isDark
+              ? {
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.08)',
+                  shadowOpacity: 0,
+                }
+              : null,
+          ]}
+        >
+          <ThemedText
+            type="subtitle"
+            style={[styles.cardTitle, { color: isDark ? palette.text : '#333' }]}
+          >
             이번 달 관리비
           </ThemedText>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>청구일</ThemedText>
-            <ThemedText style={styles.value}>{paymentDetails.issueDate}</ThemedText>
+          <View
+            style={[
+              styles.infoRow,
+              isDark ? { borderBottomColor: 'rgba(255,255,255,0.08)' } : null,
+            ]}
+          >
+            <ThemedText style={[styles.label, { color: isDark ? '#9BA1A6' : '#666' }]}>
+              청구일
+            </ThemedText>
+            <ThemedText style={[styles.value, { color: isDark ? palette.text : '#333' }]}>
+              {paymentDetails.issueDate}
+            </ThemedText>
           </View>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>납부 금액</ThemedText>
+          <View
+            style={[
+              styles.infoRow,
+              isDark ? { borderBottomColor: 'rgba(255,255,255,0.08)' } : null,
+            ]}
+          >
+            <ThemedText style={[styles.label, { color: isDark ? '#9BA1A6' : '#666' }]}>
+              납부 금액
+            </ThemedText>
             <ThemedText style={[styles.value, styles.amount]}>{paymentDetails.amount}</ThemedText>
           </View>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>납부 기한</ThemedText>
-            <ThemedText style={styles.value}>{paymentDetails.dueDate}</ThemedText>
+          <View
+            style={[
+              styles.infoRow,
+              isDark ? { borderBottomColor: 'rgba(255,255,255,0.08)' } : null,
+            ]}
+          >
+            <ThemedText style={[styles.label, { color: isDark ? '#9BA1A6' : '#666' }]}>
+              납부 기한
+            </ThemedText>
+            <ThemedText style={[styles.value, { color: isDark ? palette.text : '#333' }]}>
+              {paymentDetails.dueDate}
+            </ThemedText>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
+        <View
+          style={[
+            styles.card,
+            isDark
+              ? {
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.08)',
+                  shadowOpacity: 0,
+                }
+              : null,
+          ]}
+        >
+          <ThemedText
+            type="subtitle"
+            style={[styles.cardTitle, { color: isDark ? palette.text : '#333' }]}
+          >
             입금 계좌 안내
           </ThemedText>
           {bankAccounts.map((account, index) => (
             <TouchableOpacity
               key={index}
               onPress={() => copyToClipboard(account.number)}
-              style={styles.accountRow}
+              style={[
+                styles.accountRow,
+                isDark ? { borderBottomColor: 'rgba(255,255,255,0.08)' } : null,
+              ]}
             >
-              <ThemedText style={styles.bankName}>{account.bank}</ThemedText>
-              <View style={styles.accountNumberContainer}>
-                <ThemedText style={styles.accountNumber}>{account.number}</ThemedText>
-                <ThemedText style={styles.copyText}>복사</ThemedText>
+              <ThemedText style={[styles.bankName, { color: isDark ? '#9BA1A6' : '#555' }]}>
+                {account.bank}
+              </ThemedText>
+              <View
+                style={[
+                  styles.accountNumberContainer,
+                  isDark ? { backgroundColor: 'rgba(255,255,255,0.08)' } : null,
+                ]}
+              >
+                <ThemedText
+                  style={[styles.accountNumber, { color: isDark ? palette.text : '#333' }]}
+                >
+                  {account.number}
+                </ThemedText>
+                <ThemedText style={[styles.copyText, { color: isDark ? '#7AA2FF' : '#007AFF' }]}>
+                  복사
+                </ThemedText>
               </View>
             </TouchableOpacity>
           ))}
@@ -99,9 +186,18 @@ export default function PaymentScreen() {
 
       {/* 하단 버튼 */}
       <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}
+        style={[
+          styles.bottomContainer,
+          { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 },
+          isDark
+            ? { backgroundColor: 'rgba(22,22,24,0.9)', borderTopColor: 'rgba(255,255,255,0.08)' }
+            : null,
+        ]}
       >
-        <TouchableOpacity style={styles.button} onPress={handlePaymentComplete}>
+        <TouchableOpacity
+          style={[styles.button, isDark ? { backgroundColor: '#3B82F6' } : null]}
+          onPress={handlePaymentComplete}
+        >
           <Text style={styles.buttonText}>납부 완료</Text>
         </TouchableOpacity>
       </View>

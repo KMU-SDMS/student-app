@@ -11,12 +11,17 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 import { getNotices } from '@/services/apiService';
 import { Notice, NoticesResponse } from '@/types/notice';
 
 export default function NoticesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'light';
+  const palette = Colors[colorScheme];
+  const isDark = colorScheme === 'dark';
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,7 +103,18 @@ export default function NoticesScreen() {
 
   const renderItem = ({ item }: { item: Notice }) => (
     <TouchableOpacity
-      style={[styles.noticeItem, item.is_important && styles.importantNotice]}
+      style={[
+        styles.noticeItem,
+        item.is_important && styles.importantNotice,
+        isDark
+          ? {
+              backgroundColor: item.is_important
+                ? 'rgba(255,59,48,0.12)'
+                : 'rgba(255,255,255,0.05)',
+              borderColor: item.is_important ? '#FF3B30' : 'rgba(255,255,255,0.08)',
+            }
+          : null,
+      ]}
       onPress={() => handleNoticePress(item)}
       activeOpacity={0.7}
     >
@@ -109,11 +125,14 @@ export default function NoticesScreen() {
               <Text style={styles.importantText}>중요</Text>
             </View>
           )}
-          <ThemedText style={styles.noticeTitle} numberOfLines={2}>
+          <ThemedText
+            style={[styles.noticeTitle, { color: isDark ? palette.text : undefined }]}
+            numberOfLines={2}
+          >
             {item.title}
           </ThemedText>
         </View>
-        <ThemedText style={styles.noticeDate}>
+        <ThemedText style={[styles.noticeDate, { color: isDark ? '#9BA1A6' : undefined }]}>
           {new Date(item.date).toISOString().split('T')[0]}
         </ThemedText>
       </View>
@@ -175,8 +194,13 @@ export default function NoticesScreen() {
         onPress={() => router.back()}
         style={[styles.backButton, { top: insets.top + 10 }]}
       >
-        <View style={styles.backButtonCircle}>
-          <Text style={styles.backButtonText}>‹</Text>
+        <View
+          style={[
+            styles.backButtonCircle,
+            { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)' },
+          ]}
+        >
+          <Text style={[styles.backButtonText, { color: isDark ? palette.text : '#000' }]}>‹</Text>
         </View>
       </TouchableOpacity>
     </ThemedView>

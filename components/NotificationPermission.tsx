@@ -21,6 +21,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const isDark = (colorScheme ?? 'light') === 'dark';
 
   const {
     isSupported,
@@ -231,8 +232,8 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
       {error && (
         <View
           style={{
-            backgroundColor: '#FEF2F2',
-            borderColor: '#FECACA',
+            backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEF2F2',
+            borderColor: isDark ? 'rgba(239,68,68,0.35)' : '#FECACA',
             borderWidth: 1,
             borderRadius: 6,
             padding: 8,
@@ -242,7 +243,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           <ThemedText
             style={{
               fontSize: 12,
-              color: '#DC2626',
+              color: isDark ? '#FCA5A5' : '#DC2626',
               lineHeight: 16,
             }}
           >
@@ -256,7 +257,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           <TouchableOpacity
             style={{
               flex: 1,
-              backgroundColor: colors.tint,
+              backgroundColor: isDark ? '#3B82F6' : colors.tint,
               paddingVertical: compact ? 8 : 12,
               paddingHorizontal: 16,
               borderRadius: 6,
@@ -284,7 +285,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           <TouchableOpacity
             style={{
               flex: 1,
-              backgroundColor: '#EF4444',
+              backgroundColor: isDark ? '#DC2626' : '#EF4444',
               paddingVertical: compact ? 8 : 12,
               paddingHorizontal: 16,
               borderRadius: 6,

@@ -11,6 +11,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 import { getNoticeById } from '@/services/apiService';
 import { Notice } from '@/types/notice';
 
@@ -18,6 +20,9 @@ export default function NoticeDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams();
+  const colorScheme = useColorScheme() ?? 'light';
+  const palette = Colors[colorScheme];
+  const isDark = colorScheme === 'dark';
 
   const [notice, setNotice] = useState<Notice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,15 +76,24 @@ export default function NoticeDetailScreen() {
                 <Text style={styles.importantText}>중요</Text>
               </View>
             )}
-            <ThemedText style={styles.title}>{notice.title}</ThemedText>
+            <ThemedText style={[styles.title, { color: palette.text }]}>{notice.title}</ThemedText>
           </View>
-          <ThemedText style={styles.date}>
+          <ThemedText style={[styles.date, { color: isDark ? '#9BA1A6' : undefined }]}>
             {new Date(notice.date).toISOString().split('T')[0]}
           </ThemedText>
         </View>
 
-        <View style={styles.contentContainer}>
-          <ThemedText style={styles.content}>{notice.content}</ThemedText>
+        <View
+          style={[
+            styles.contentContainer,
+            isDark
+              ? { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.08)' }
+              : null,
+          ]}
+        >
+          <ThemedText style={[styles.content, { color: isDark ? palette.text : undefined }]}>
+            {notice.content}
+          </ThemedText>
         </View>
       </ScrollView>
     );
@@ -93,8 +107,13 @@ export default function NoticeDetailScreen() {
         onPress={() => router.back()}
         style={[styles.backButton, { top: insets.top + 10 }]}
       >
-        <View style={styles.backButtonCircle}>
-          <Text style={styles.backButtonText}>‹</Text>
+        <View
+          style={[
+            styles.backButtonCircle,
+            { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)' },
+          ]}
+        >
+          <Text style={[styles.backButtonText, { color: isDark ? palette.text : '#000' }]}>‹</Text>
         </View>
       </TouchableOpacity>
     </ThemedView>

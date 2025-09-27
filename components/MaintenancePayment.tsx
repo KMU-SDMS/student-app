@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 interface MaintenanceFee {
   id: number;
@@ -42,6 +44,9 @@ const mockMaintenanceFees: MaintenanceFee[] = [
 
 export default function MaintenancePayment() {
   const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'light';
+  const palette = Colors[colorScheme];
+  const isDark = colorScheme === 'dark';
   const allFees = mockMaintenanceFees;
   const hasFees = allFees.length > 0;
 
@@ -92,15 +97,29 @@ export default function MaintenancePayment() {
 
       <View style={styles.feeList}>
         {allFees.map((fee) => (
-          <View key={fee.id} style={styles.feeItem}>
+          <View
+            key={fee.id}
+            style={[styles.feeItem, isDark ? { backgroundColor: 'rgba(255,255,255,0.05)' } : null]}
+          >
             <View style={styles.feeInfo}>
-              <ThemedText style={styles.feeMonth}>{fee.month}</ThemedText>
-              <ThemedText style={styles.feeAmount}>{formatAmount(fee.amount)}</ThemedText>
-              <ThemedText style={styles.dueDate}>납부기한: {fee.dueDate}</ThemedText>
+              <ThemedText style={[styles.feeMonth, { color: isDark ? palette.text : undefined }]}>
+                {fee.month}
+              </ThemedText>
+              <ThemedText style={[styles.feeAmount, { color: isDark ? palette.text : undefined }]}>
+                {formatAmount(fee.amount)}
+              </ThemedText>
+              <ThemedText style={[styles.dueDate, { color: isDark ? '#9BA1A6' : undefined }]}>
+                납부기한: {fee.dueDate}
+              </ThemedText>
             </View>
 
             <TouchableOpacity
-              style={[styles.payButton, fee.isPaid && styles.completedButton]}
+              style={[
+                styles.payButton,
+                fee.isPaid && styles.completedButton,
+                isDark && !fee.isPaid ? { backgroundColor: '#3B82F6' } : null,
+                isDark && fee.isPaid ? { backgroundColor: '#22C55E' } : null,
+              ]}
               onPress={() => handlePayment(fee)}
               disabled={fee.isPaid}
             >

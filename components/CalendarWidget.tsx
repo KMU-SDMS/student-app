@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'rea
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useCalendar } from '../hooks/useCalendar';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 interface CalendarWidgetProps {
   onDateSelect?: (date: Date) => void;
@@ -10,6 +12,8 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const colorScheme = useColorScheme() ?? 'light';
+  const palette = Colors[colorScheme];
   const {
     isLoading,
     error,
@@ -108,7 +112,11 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
               <Text style={[styles.dayText, styles.todayText]}>{day}</Text>
             </View>
           ) : (
-            <Text style={styles.dayText}>{day}</Text>
+            <Text
+              style={[styles.dayText, { color: colorScheme === 'dark' ? palette.text : '#1C1C1E' }]}
+            >
+              {day}
+            </Text>
           )}
           <View style={styles.dotsRow}>
             {hasRegular && <View style={[styles.dotBase, styles.dotRegular]} />}
@@ -140,30 +148,100 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.cardBody}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
-            <Text style={styles.navButtonText}>‹</Text>
+    <ThemedView
+      style={[
+        styles.container,
+        {
+          backgroundColor:
+            colorScheme === 'dark' ? 'rgba(28,28,30,0.95)' : 'rgba(255,255,255,0.95)',
+          shadowColor: colorScheme === 'dark' ? '#000' : '#000',
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.cardBody,
+          {
+            backgroundColor:
+              colorScheme === 'dark' ? 'rgba(34,34,36,0.95)' : 'rgba(255,255,255,0.95)',
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor:
+                colorScheme === 'dark' ? 'rgba(99,102,241,0.08)' : 'rgba(0,122,255,0.05)',
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={goToPreviousMonth}
+            style={[
+              styles.navButton,
+              {
+                backgroundColor:
+                  colorScheme === 'dark' ? 'rgba(99,102,241,0.15)' : 'rgba(0,122,255,0.1)',
+                shadowColor: colorScheme === 'dark' ? '#6366F1' : '#007AFF',
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.navButtonText,
+                { color: colorScheme === 'dark' ? palette.tint : '#007AFF' },
+              ]}
+            >
+              ‹
+            </Text>
           </TouchableOpacity>
 
-          <ThemedText style={styles.monthYear}>
+          <ThemedText style={[styles.monthYear, { color: palette.text }]}>
             {year}년 {monthNames[month]}
           </ThemedText>
 
-          <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-            <Text style={styles.navButtonText}>›</Text>
+          <TouchableOpacity
+            onPress={goToNextMonth}
+            style={[
+              styles.navButton,
+              {
+                backgroundColor:
+                  colorScheme === 'dark' ? 'rgba(99,102,241,0.15)' : 'rgba(0,122,255,0.1)',
+                shadowColor: colorScheme === 'dark' ? '#6366F1' : '#007AFF',
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.navButtonText,
+                { color: colorScheme === 'dark' ? palette.tint : '#007AFF' },
+              ]}
+            >
+              ›
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.weekDaysContainer}>
+        <View
+          style={[
+            styles.weekDaysContainer,
+            {
+              backgroundColor:
+                colorScheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+            },
+          ]}
+        >
           {weekDays.map((day, index) => (
             <View key={day} style={styles.weekDayContainer}>
               <Text
                 style={[
                   styles.weekDayText,
-                  index === 0 && styles.sundayText,
-                  index === 6 && styles.saturdayText,
+                  { color: colorScheme === 'dark' ? '#9BA1A6' : '#8E8E93' },
+                  index === 0 &&
+                    (colorScheme === 'dark' ? styles.sundayTextDark : styles.sundayText),
+                  index === 6 &&
+                    (colorScheme === 'dark' ? styles.saturdayTextDark : styles.saturdayText),
                 ]}
               >
                 {day}
@@ -174,32 +252,77 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>일정을 불러오는 중...</Text>
+            <ActivityIndicator
+              size="large"
+              color={colorScheme === 'dark' ? palette.tint : '#007AFF'}
+            />
+            <Text
+              style={[
+                styles.loadingText,
+                { color: colorScheme === 'dark' ? '#9BA1A6' : '#8E8E93' },
+              ]}
+            >
+              일정을 불러오는 중...
+            </Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>일정을 불러올 수 없습니다</Text>
-            <Text style={styles.errorSubText}>{error}</Text>
+            <Text style={[styles.errorText, { color: '#FF6B6B' }]}>일정을 불러올 수 없습니다</Text>
+            <Text
+              style={[
+                styles.errorSubText,
+                { color: colorScheme === 'dark' ? '#9BA1A6' : '#8E8E93' },
+              ]}
+            >
+              {error}
+            </Text>
           </View>
         ) : (
           <View style={styles.calendarGrid}>{renderCalendarDays()}</View>
         )}
       </View>
 
-      <View style={styles.legend}>
+      <View
+        style={[
+          styles.legend,
+          {
+            backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+          },
+        ]}
+      >
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
             <View style={styles.legendRegularDot} />
-            <Text style={styles.legendRegularText}>일반 점호</Text>
+            <Text
+              style={[
+                styles.legendRegularText,
+                { color: colorScheme === 'dark' ? '#FFD700' : '#FFD700' },
+              ]}
+            >
+              일반 점호
+            </Text>
           </View>
           <View style={styles.legendItem}>
             <View style={styles.legendCleaningDot} />
-            <Text style={styles.legendCleaningText}>청소 점호</Text>
+            <Text
+              style={[
+                styles.legendCleaningText,
+                { color: colorScheme === 'dark' ? '#7AA2FF' : '#007AFF' },
+              ]}
+            >
+              청소 점호
+            </Text>
           </View>
           <View style={styles.legendItem}>
             <View style={styles.legendPaymentDot} />
-            <Text style={styles.legendPaymentText}>관비 납부 마감</Text>
+            <Text
+              style={[
+                styles.legendPaymentText,
+                { color: colorScheme === 'dark' ? '#34C759' : '#34C759' },
+              ]}
+            >
+              관비 납부 마감
+            </Text>
           </View>
         </View>
       </View>
@@ -285,6 +408,13 @@ const styles = StyleSheet.create({
   },
   saturdayText: {
     color: '#007AFF',
+    fontWeight: '700',
+  },
+  sundayTextDark: {
+    color: '#FF6B6B',
+  },
+  saturdayTextDark: {
+    color: '#7AA2FF',
     fontWeight: '700',
   },
   calendarGrid: {
