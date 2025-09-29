@@ -6,10 +6,8 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { logger } from '@/utils/logger';
-import SplashScreen from '@/components/SplashScreen';
-import { useAppInitialization } from '@/hooks/useAppInitialization';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -17,44 +15,29 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // 앱 초기화 훅 사용
-  const {
-    isLoading: isAppInitializing,
-    error,
-    retryInitialization,
-    initializationProgress,
-  } = useAppInitialization({
-    minLoadingTime: 2000, // 최소 2초 로딩
-    enableProgressTracking: true,
-  });
-
-  // 스플래시 스크린 표시 상태 관리
-  const [showSplash, setShowSplash] = useState(true);
-
-  // 스플래시 스크린 완료 핸들러
-  const handleSplashFinish = () => {
-    setShowSplash(false);
-  };
-
-  // 에러가 발생한 경우 로깅
-  useEffect(() => {
-    if (error) {
-      logger.error('앱 초기화 오류', new Error(error), { event: 'app_init_error' });
-    }
-  }, [error]);
-
-  // 스플래시 스크린이 필요한 경우 완전히 분리된 렌더링
-  if (!loaded || isAppInitializing || showSplash) {
-    return (
-      <SplashScreen
-        onFinish={handleSplashFinish}
-        isVisible={true}
-        progress={initializationProgress}
-      />
-    );
+  if (!loaded) {
+    // Async font loading only occurs in development.
+    return null;
   }
 
-  // 메인 앱 렌더링
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const swPath = '/sw.js';
+      navigator.serviceWorker
+        .register(swPath)
+        .then((reg) => {
+          logger.info('Service worker registered', { event: 'sw_register', screen: 'RootLayout' });
+          // Listen for updates
+          reg.addEventListener('updatefound', () => {
+            logger.info('Service worker update found', { event: 'sw_update_found' });
+          });
+        })
+        .catch((err) => {
+          logger.error('Service worker registration failed', err, { event: 'sw_register_error' });
+        });
+    }
+  }, []);
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Head>

@@ -21,22 +21,8 @@ export default function NoticeSection() {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        // 먼저 미리 로드된 데이터 확인
-        if (typeof window !== 'undefined' && window.localStorage) {
-          const preloadedData = localStorage.getItem('preloaded_notices');
-          if (preloadedData) {
-            const response: NoticesResponse = JSON.parse(preloadedData);
-            setNotices(response.notices.slice(0, 3));
-            setIsLoading(false);
-            console.log('NoticeSection: 미리 로드된 공지사항 데이터 사용');
-            return;
-          }
-        }
-
-        // 미리 로드된 데이터가 없으면 API 호출
         const response: NoticesResponse = await getNotices();
         setNotices(response.notices.slice(0, 3));
-        console.log('NoticeSection: API에서 공지사항 데이터 새로 로드');
       } catch (error) {
         console.error('Failed to fetch notices for NoticeSection:', error);
       } finally {
