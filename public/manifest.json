@@ -30,11 +30,6 @@
       "url": "/notices"
     },
     {
-      "name": "분석",
-      "short_name": "분석",
-      "url": "/analysis"
-    },
-    {
       "name": "납부",
       "short_name": "납부",
       "url": "/payment"
