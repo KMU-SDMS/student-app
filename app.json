@@ -1,19 +1,17 @@
 {
   "expo": {
-    "name": "PostScan",
-    "slug": "PostScan",
+    "name": "SDS",
+    "slug": "sds",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "postscan",
+    "scheme": "sds",
     "userInterfaceStyle": "automatic",
     "platforms": ["ios", "android", "web"],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "송장 촬영을 위해 카메라 접근 권한이 필요합니다."
-      }
+      "infoPlist": {}
     },
     "android": {
       "adaptiveIcon": {
@@ -21,14 +19,14 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.miniwa00.PostScan"
+      "package": "com.minseok.sds"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png",
-      "name": "PostScan",
-      "shortName": "PostScan",
+      "name": "SDS",
+      "shortName": "SDS",
       "description": "A short description of your app.",
       "lang": "ko",
       "themeColor": "#ffffff",
