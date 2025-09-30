@@ -226,15 +226,12 @@ export const usePushNotification = (): UsePushNotificationReturn => {
         return existingSubscription;
       }
 
-      // VAPID 공개 키 설정에서 로드 (app.json -> expo.extra.vapidPublicKey)
-      const vapidPublicKey =
-        (globalThis as any).expo?.extra?.vapidPublicKey ||
-        (typeof window !== 'undefined' && (window as any).expo?.extra?.vapidPublicKey) ||
-        '';
+      // VAPID 공개 키를 환경변수에서 로드
+      const vapidPublicKey = process.env.EXPO_PUBLIC_VAPID_PUBLIC_KEY || '';
 
       if (!vapidPublicKey) {
         console.warn(
-          'VAPID 공개 키가 설정되지 않았습니다. app.json의 expo.extra.vapidPublicKey를 설정하세요.',
+          'VAPID 공개 키가 설정되지 않았습니다. .env 파일에 EXPO_PUBLIC_VAPID_PUBLIC_KEY를 설정하세요.',
         );
         setState((prev) => ({
           ...prev,
