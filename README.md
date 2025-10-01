@@ -84,7 +84,6 @@ pnpm exec expo export --platform web
 student-app/
 ├── app/                    # 앱 페이지 (Expo Router)
 │   ├── (tabs)/            # 탭 네비게이션
-│   ├── analysis.tsx       # 분석(내부/부가 기능)
 │   ├── notices.tsx        # 공지사항 페이지
 │   └── payment.tsx        # 관비 납부 페이지
 ├── components/            # 재사용 가능한 컴포넌트

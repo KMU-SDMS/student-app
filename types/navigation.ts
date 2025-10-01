@@ -1,7 +1,1 @@
-export type AnalysisRouteParams = {
-  photoUri: string;
-};
-
-export type RouteParams = {
-  '/analysis': AnalysisRouteParams;
-};
+export type RouteParams = {};

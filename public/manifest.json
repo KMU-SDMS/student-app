@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "StudentApp",
-  "short_name": "StudentApp",
+  "name": "국민대학교 SDS",
+  "short_name": "국민대 SDS",
   "lang": "ko-KR",
   "dir": "ltr",
   "start_url": "/",
@@ -9,7 +9,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#111827",
-  "description": "StudentApp PWA",
+  "description": "국민대학교 SDS PWA",
   "orientation": "portrait",
   "categories": ["productivity", "utilities"],
   "prefer_related_applications": false,
@@ -28,11 +28,6 @@
       "name": "공지사항",
       "short_name": "공지",
       "url": "/notices"
-    },
-    {
-      "name": "분석",
-      "short_name": "분석",
-      "url": "/analysis"
     },
     {
       "name": "납부",
