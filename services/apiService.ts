@@ -99,3 +99,46 @@ export const getCalendarEvents = async (date?: string): Promise<CalendarResponse
     return [];
   }
 };
+
+// --- 푸시 알림 관련 함수 추가 ---
+
+interface SubscriptionPayload {
+  fcm_token: string;
+  student_no: string;
+  platform: string;
+}
+
+/**
+ * 생성된 FCM 토큰을 백엔드 서버에 등록합니다.
+ * @param payload fcm_token, student_no, platform 정보
+ */
+export const subscribeToPushNotifications = async (payload: SubscriptionPayload) => {
+  try {
+    console.log('서버에 FCM 토큰 등록 중...', payload);
+
+    const response = await fetch(`${BASE_URL}/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('FCM 토큰 등록 실패:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      throw new Error(`FCM 토큰 등록 실패: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('FCM 토큰 등록 성공:', result);
+    return result;
+  } catch (error) {
+    console.error('FCM 토큰 등록 중 오류:', error);
+    throw error;
+  }
+};

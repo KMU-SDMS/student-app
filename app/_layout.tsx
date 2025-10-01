@@ -6,7 +6,6 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect } from 'react';
 import { logger } from '@/utils/logger';
 
 export default function RootLayout() {
@@ -19,24 +18,6 @@ export default function RootLayout() {
     // Async font loading only occurs in development.
     return null;
   }
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      const swPath = '/sw.js';
-      navigator.serviceWorker
-        .register(swPath)
-        .then((reg) => {
-          logger.info('Service worker registered', { event: 'sw_register', screen: 'RootLayout' });
-          // Listen for updates
-          reg.addEventListener('updatefound', () => {
-            logger.info('Service worker update found', { event: 'sw_update_found' });
-          });
-        })
-        .catch((err) => {
-          logger.error('Service worker registration failed', err, { event: 'sw_register_error' });
-        });
-    }
-  }, []);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

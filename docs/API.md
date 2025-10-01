@@ -143,3 +143,86 @@ json
 ]
 
 물론 하루에 일정이 두 개일 경우도 존재한다.
+
+알림 API
+
+1. 알림 구독 생성
+
+- path: /subscriptions
+- method: POST
+- 기능: FCM 토큰을 등록하여 새로운 학생의 알림 구독 활성화
+- request
+
+{
+"fcm_token": "fcm_token_example_12345",
+"student_no": "20243105",
+"platform": "web"
+}
+
+    * fcm_token : 사용자가 알림 기능을 허용한 뒤에 발급 가능합니다.
+    * student_no: 개발 중인 현재는 임의, 나중에 로그인 기능 추가 시 실제 지정 가능
+    * platform : 웹 앱이므로 사실상 web 고정
+
+- response
+
+{  
+ "id": 1,
+"fcm_token": "fcm_token_example_12345",
+"student_no": "20243105",
+"is_active": true,
+"platform": "ios",
+"created_at": "2024-09-01T10:00:00Z",
+"updated_at": "2024-09-01T10:00:00Z"
+}
+
+2. 알림 구독 조회
+
+- path : /subscriptions/status
+- method : GET
+- 기능 : FCM 토큰을 통해 대상 학생의 구독 정보 확인
+- request
+  - 쿼리 파라미터: fcm_token
+  - 예: /subscriptions/status?fcm_token=fcm_token_example_12345
+- response
+
+{
+"active": true,
+"subscription_id": 1,
+"student_no": "20243105",
+"platform": "ios",
+"created_at": "2024-09-01T10:00:00Z",
+"updated_at": "2024-09-01T10:00:00Z"
+}
+
+3. 알림 수동 전송 (이 API를 사용할 지 확실하지 않다)
+
+- path: /notifications
+- method: POST
+- 기능: 관리자가 모든 학생에게 수동으로 공지를 전송
+- request
+
+{
+"title": "긴급 공지",
+"content": "제2정릉생활관 정보자원관리원 화재 안내",
+"notice_id": 123
+}
+
+    * 내용 모두 직접 작성합니다.
+
+- response
+
+{
+"success": true,
+"total_subscriptions": 150,
+"success_count": 145,
+"failure_count": 5,
+"invalid_tokens": [
+"token1",
+"token2"
+],
+"failed_tokens": [
+"token3"
+]
+}
+
+    * 전송 성공 및 실패 현황
