@@ -8,7 +8,7 @@
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#111827",
+  "theme_color": "#ffffff",
   "description": "국민대학교 SDS PWA",
   "orientation": "portrait",
   "categories": ["productivity", "utilities"],
