@@ -140,18 +140,27 @@ export default function NoticeDetailScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      {renderContent()}
+      {/* 상단 헤더 바 */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로가기"
+        >
+          <View style={styles.backButtonCircle}>
+            <ChevronIcon direction="left" size={12} color="#000" />
+          </View>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={[styles.backButton, { top: insets.top + 10 }]}
-        accessibilityRole="button"
-        accessibilityLabel="뒤로가기"
-      >
-        <View style={styles.backButtonCircle}>
-          <ChevronIcon direction="left" size={12} color="#000" />
-        </View>
-      </TouchableOpacity>
+        <ThemedText type="title" style={styles.headerTitle}>
+          공지사항 상세
+        </ThemedText>
+
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {renderContent()}
     </ThemedView>
   );
 }
@@ -166,7 +175,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
-    paddingTop: 60, // 돌아가기 버튼 아래로 여백 추가
+    paddingTop: 20, // 헤더 바 아래로 여백 조정
   },
   header: {
     marginTop: 20,
@@ -211,10 +220,27 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     opacity: 0.9,
   },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    marginHorizontal: 20,
+  },
+  headerSpacer: {
+    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
+  },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 1,
+    // position과 zIndex 제거
   },
   backButtonCircle: {
     width: 40,

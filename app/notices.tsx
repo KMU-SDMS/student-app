@@ -188,11 +188,7 @@ export default function NoticesScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={() => (
-          <ThemedText type="title" style={styles.title}>
-            전체 공지사항
-          </ThemedText>
-        )}
+        ListHeaderComponent={() => null}
         ListFooterComponent={() => {
           if (isLoadingMore) {
             return <ActivityIndicator size="small" style={styles.loadingMoreIndicator} />;
@@ -223,17 +219,27 @@ export default function NoticesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {/* 상단 헤더 바 */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로가기"
+        >
+          <View style={styles.backButtonCircle}>
+            <ChevronIcon direction="left" size={12} color="#000" />
+          </View>
+        </TouchableOpacity>
+
+        <ThemedText type="title" style={styles.headerTitle}>
+          전체 공지사항
+        </ThemedText>
+
+        <View style={styles.headerSpacer} />
+      </View>
+
       {renderContent()}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={[styles.backButton, { top: insets.top + 10 }]}
-        accessibilityRole="button"
-        accessibilityLabel="뒤로가기"
-      >
-        <View style={styles.backButtonCircle}>
-          <ChevronIcon direction="left" size={12} color="#000" />
-        </View>
-      </TouchableOpacity>
     </ThemedView>
   );
 }
@@ -242,13 +248,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  title: {
-    textAlign: 'center',
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    marginHorizontal: 20,
+  },
+  headerSpacer: {
+    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
   },
   listContainer: {
     paddingHorizontal: 20,
+    paddingTop: 16, // 헤더 바와 내용 사이 간격 추가
     paddingBottom: 20,
   },
   loadingIndicator: {
@@ -262,9 +283,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 1,
+    // position과 zIndex 제거
   },
   backButtonCircle: {
     width: 40,
