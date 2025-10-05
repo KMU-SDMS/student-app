@@ -13,6 +13,59 @@ import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+// React Native Web 호환 아이콘 컴포넌트
+interface ChevronIconProps {
+  direction: 'left' | 'right';
+  size?: number;
+  color?: string;
+  thickness?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
+const ChevronIcon = ({
+  direction,
+  size = 10,
+  color = '#000',
+  thickness = 2,
+  offsetX = 0,
+  offsetY = 0,
+}: ChevronIconProps) => {
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderColor: color,
+  } as const;
+
+  const offset = size * 0.25;
+
+  const rightStyle = {
+    borderRightWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '-45deg' },
+      { translateX: -offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  const leftStyle = {
+    borderLeftWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
+};
+
 // 임시 데이터
 const paymentDetails = {
   issueDate: '2025년 9월 5일',
@@ -47,9 +100,11 @@ export default function PaymentScreen() {
       <TouchableOpacity
         onPress={() => router.back()}
         style={[styles.backButton, { top: insets.top + 10 }]}
+        accessibilityRole="button"
+        accessibilityLabel="뒤로가기"
       >
         <View style={styles.backButtonCircle}>
-          <Text style={styles.backButtonText}>‹</Text>
+          <ChevronIcon direction="left" size={12} color="#000" />
         </View>
       </TouchableOpacity>
 
@@ -134,15 +189,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#000',
-    fontSize: 24,
-    fontWeight: 'bold',
-    lineHeight: 40,
   },
   card: {
     backgroundColor: '#FFFFFF',
