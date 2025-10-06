@@ -8,6 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "web:hash": "cross-env EXPO_USE_HASH_ROUTING=1 expo start --web",
+    "export:web": "cross-env EXPO_USE_HASH_ROUTING=1 expo export --platform web",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
@@ -58,6 +60,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-native": "^5.0.0",
     "prettier": "^3.6.2",
+    "cross-env": "^7.0.3",
     "typescript": "~5.8.3"
   },
   "pnpm": {

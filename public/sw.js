@@ -47,9 +47,10 @@ self.addEventListener('activate', (event) => {
 });
 
 // --- PWA Caching Setup ---
-const CACHE_NAME = 'studentapp-static-v1';
+const CACHE_NAME = 'studentapp-static-v2';
 const APP_SHELL = [
   '/',
+  '/index.html',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
