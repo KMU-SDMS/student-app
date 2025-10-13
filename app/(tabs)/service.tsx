@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MaintenancePayment from '@/components/MaintenancePayment';
 import OvernightStayWidget from '@/components/OvernightStayWidget';
+import RepairRequestWidget from '@/components/RepairRequestWidget';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ServiceScreen() {
@@ -29,6 +30,9 @@ export default function ServiceScreen() {
 
         {/* 외박계 신청 섹션 */}
         <OvernightStayWidget />
+
+        {/* 수리 요구 섹션 */}
+        <RepairRequestWidget />
       </ThemedView>
     </ScrollView>
   );
