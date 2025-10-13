@@ -2,6 +2,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MaintenancePayment from '@/components/MaintenancePayment';
+import OvernightStayWidget from '@/components/OvernightStayWidget';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ServiceScreen() {
@@ -25,6 +26,9 @@ export default function ServiceScreen() {
 
         {/* 관리비 납부 섹션 */}
         <MaintenancePayment />
+
+        {/* 외박계 신청 섹션 */}
+        <OvernightStayWidget />
       </ThemedView>
     </ScrollView>
   );
