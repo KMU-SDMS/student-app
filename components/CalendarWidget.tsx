@@ -8,6 +8,58 @@ interface CalendarWidgetProps {
   onDateSelect?: (date: Date) => void;
 }
 
+interface ChevronIconProps {
+  direction: 'left' | 'right';
+  size?: number;
+  color?: string;
+  thickness?: number;
+  offsetX?: number; // 사용자 정의 X축 보정(px)
+  offsetY?: number; // 사용자 정의 Y축 보정(px)
+}
+
+const ChevronIcon = ({
+  direction,
+  size = 10,
+  color = '#007AFF',
+  thickness = 2,
+  offsetX = 0,
+  offsetY = 0,
+}: ChevronIconProps) => {
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderColor: color,
+  } as const;
+
+  const offset = size * 0.25;
+
+  const rightStyle = {
+    borderRightWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '-45deg' },
+      { translateX: -offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  const leftStyle = {
+    borderLeftWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
+};
+
 export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const {
@@ -143,16 +195,26 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
     <ThemedView style={styles.container}>
       <View style={styles.cardBody}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
-            <Text style={styles.navButtonText}>‹</Text>
+          <TouchableOpacity
+            onPress={goToPreviousMonth}
+            style={styles.navButton}
+            accessibilityRole="button"
+            accessibilityLabel="이전 달"
+          >
+            <ChevronIcon direction="left" />
           </TouchableOpacity>
 
           <ThemedText style={styles.monthYear}>
             {year}년 {monthNames[month]}
           </ThemedText>
 
-          <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-            <Text style={styles.navButtonText}>›</Text>
+          <TouchableOpacity
+            onPress={goToNextMonth}
+            style={styles.navButton}
+            accessibilityRole="button"
+            accessibilityLabel="다음 달"
+          >
+            <ChevronIcon direction="right" />
           </TouchableOpacity>
         </View>
 
@@ -243,17 +305,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,122,255,0.1)',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
   navButtonText: {
     fontSize: 20,

@@ -13,6 +13,59 @@ import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+// React Native Web 호환 아이콘 컴포넌트
+interface ChevronIconProps {
+  direction: 'left' | 'right';
+  size?: number;
+  color?: string;
+  thickness?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
+const ChevronIcon = ({
+  direction,
+  size = 10,
+  color = '#000',
+  thickness = 2,
+  offsetX = 0,
+  offsetY = 0,
+}: ChevronIconProps) => {
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderColor: color,
+  } as const;
+
+  const offset = size * 0.25;
+
+  const rightStyle = {
+    borderRightWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '-45deg' },
+      { translateX: -offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  const leftStyle = {
+    borderLeftWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
+};
+
 // 임시 데이터
 const paymentDetails = {
   issueDate: '2025년 9월 5일',
@@ -43,22 +96,28 @@ export default function PaymentScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      {/* 뒤로가기 버튼 */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={[styles.backButton, { top: insets.top + 10 }]}
-      >
-        <View style={styles.backButtonCircle}>
-          <Text style={styles.backButtonText}>‹</Text>
-        </View>
-      </TouchableOpacity>
+      {/* 상단 헤더 바 */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로가기"
+        >
+          <View style={styles.backButtonCircle}>
+            <ChevronIcon direction="left" size={12} color="#000" />
+          </View>
+        </TouchableOpacity>
 
-      {/* 메인 콘텐츠 */}
-      <ScrollView style={styles.contentScroll} contentContainerStyle={styles.contentContainer}>
-        <ThemedText type="title" style={styles.title}>
+        <ThemedText type="title" style={styles.headerTitle}>
           관리비 납부
         </ThemedText>
 
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {/* 메인 콘텐츠 */}
+      <ScrollView style={styles.contentScroll} contentContainerStyle={styles.contentContainer}>
         <View style={styles.card}>
           <ThemedText type="subtitle" style={styles.cardTitle}>
             이번 달 관리비
@@ -119,30 +178,37 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
-    paddingTop: 64, // 뒤로가기 버튼과 제목을 위한 공간 확보
+    paddingTop: 20, // 헤더 바 아래로 여백 조정
   },
-  title: {
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  headerTitle: {
+    flex: 1,
     textAlign: 'center',
-    marginBottom: 24, // 제목과 카드 사이의 여백
+    fontSize: 18,
+    fontWeight: '600',
+    marginHorizontal: 20,
+  },
+  headerSpacer: {
+    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 1,
+    // position과 zIndex 제거
   },
   backButtonCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#000',
-    fontSize: 24,
-    fontWeight: 'bold',
-    lineHeight: 40,
   },
   card: {
     backgroundColor: '#FFFFFF',

@@ -23,7 +23,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#111827" />
+        <meta name="theme-color" content="#ffffff" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
       </Head>
       <Stack>

@@ -14,6 +14,59 @@ import { useRouter } from 'expo-router';
 import { getNotices } from '@/services/apiService';
 import { Notice, NoticesResponse } from '@/types/notice';
 
+// React Native Web 호환 아이콘 컴포넌트
+interface ChevronIconProps {
+  direction: 'left' | 'right';
+  size?: number;
+  color?: string;
+  thickness?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
+const ChevronIcon = ({
+  direction,
+  size = 10,
+  color = '#000',
+  thickness = 2,
+  offsetX = 0,
+  offsetY = 0,
+}: ChevronIconProps) => {
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderColor: color,
+  } as const;
+
+  const offset = size * 0.25;
+
+  const rightStyle = {
+    borderRightWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '-45deg' },
+      { translateX: -offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  const leftStyle = {
+    borderLeftWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: offset },
+      { translateY: -offset },
+      { translateX: offsetX },
+      { translateY: offsetY },
+    ],
+  } as const;
+
+  return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
+};
+
 export default function NoticesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -135,11 +188,7 @@ export default function NoticesScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={() => (
-          <ThemedText type="title" style={styles.title}>
-            전체 공지사항
-          </ThemedText>
-        )}
+        ListHeaderComponent={() => null}
         ListFooterComponent={() => {
           if (isLoadingMore) {
             return <ActivityIndicator size="small" style={styles.loadingMoreIndicator} />;
@@ -170,15 +219,27 @@ export default function NoticesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+      {/* 상단 헤더 바 */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로가기"
+        >
+          <View style={styles.backButtonCircle}>
+            <ChevronIcon direction="left" size={12} color="#000" />
+          </View>
+        </TouchableOpacity>
+
+        <ThemedText type="title" style={styles.headerTitle}>
+          전체 공지사항
+        </ThemedText>
+
+        <View style={styles.headerSpacer} />
+      </View>
+
       {renderContent()}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={[styles.backButton, { top: insets.top + 10 }]}
-      >
-        <View style={styles.backButtonCircle}>
-          <Text style={styles.backButtonText}>‹</Text>
-        </View>
-      </TouchableOpacity>
     </ThemedView>
   );
 }
@@ -187,13 +248,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  title: {
-    textAlign: 'center',
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    marginHorizontal: 20,
+  },
+  headerSpacer: {
+    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
   },
   listContainer: {
     paddingHorizontal: 20,
+    paddingTop: 16, // 헤더 바와 내용 사이 간격 추가
     paddingBottom: 20,
   },
   loadingIndicator: {
@@ -207,23 +283,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 1,
+    // position과 zIndex 제거
   },
   backButtonCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#000',
-    fontSize: 24,
-    fontWeight: 'bold',
-    lineHeight: 40, // Center the chevron vertically
   },
   noticeItem: {
     backgroundColor: '#FFFFFF',
