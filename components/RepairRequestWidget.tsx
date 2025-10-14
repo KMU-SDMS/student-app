@@ -1,14 +1,17 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Linking, Platform } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
-import { useRouter } from 'expo-router';
 
 export default function RepairRequestWidget() {
-  const router = useRouter();
+  const repairUrl = 'https://dormitory.kookmin.ac.kr/community/repair/?sc=318';
 
   const handlePress = () => {
-    router.push('/repair-request');
+    if (Platform.OS === 'web') {
+      window.open(repairUrl, '_blank');
+    } else {
+      Linking.openURL(repairUrl);
+    }
   };
 
   return (
