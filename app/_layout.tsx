@@ -35,8 +35,10 @@ export default function RootLayout() {
         <style>{`
           html, body, #root { height: 100%; }
           /* 페이지 자체의 스크롤을 차단하고 내부 컨테이너만 스크롤하도록 유도 */
-          html, body { overscroll-behavior: none; }
-          body { position: fixed; width: 100%; overflow: hidden; }
+          html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+          body { position: fixed; width: 100%; overflow: hidden; touch-action: manipulation; }
+          /* iOS 포커스 확대 방지: 입력 요소 폰트 16px 이상 */
+          input, textarea, select, button { font-size: 16px !important; }
         `}</style>
       </Head>
       {Platform.OS === 'web' ? <ResetScrollEffects pathname={pathname} /> : null}
