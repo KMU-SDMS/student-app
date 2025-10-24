@@ -44,7 +44,8 @@ export default function RootLayout() {
       {Platform.OS === 'web' ? <ResetScrollEffects pathname={pathname} /> : null}
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/index" options={{ headerShown: false }} />
         <Stack.Screen name="home" options={{ headerShown: false }} />
         <Stack.Screen name="notices" options={{ headerShown: false }} />
         <Stack.Screen name="notice-detail" options={{ headerShown: false }} />
