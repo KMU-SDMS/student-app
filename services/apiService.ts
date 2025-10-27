@@ -1,38 +1,98 @@
 import { Notice, NoticesResponse, PageInfo } from '../types/notice';
-import { CalendarEvent, CalendarResponse } from '../types/calendar';
+import { CalendarResponse } from '../types/calendar';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL as string;
+const API_BASE = (process.env.EXPO_PUBLIC_API_BASE_URL as string) || 'http://localhost:3000';
+
+function isAbsoluteUrl(path: string): boolean {
+  return /^https?:\/\//.test(path);
+}
+
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const normalizedPath = isAbsoluteUrl(path) ? path : path.startsWith('/') ? path : `/${path}`;
+  const url = isAbsoluteUrl(path) ? normalizedPath : `${API_BASE}${normalizedPath}`;
+
+  const mergedHeaders: HeadersInit = { ...(init?.headers ?? {}) };
+  const bodyValue: any = init?.body as any;
+  const hasBody = bodyValue !== undefined && bodyValue !== null;
+  const isFormData = typeof FormData !== 'undefined' && hasBody && bodyValue instanceof FormData;
+  const isUrlEncoded =
+    typeof URLSearchParams !== 'undefined' && hasBody && bodyValue instanceof URLSearchParams;
+  const isBlob = typeof Blob !== 'undefined' && hasBody && bodyValue instanceof Blob;
+  const isArrayBuffer =
+    typeof ArrayBuffer !== 'undefined' && hasBody && bodyValue instanceof ArrayBuffer;
+  const isReadable =
+    typeof ReadableStream !== 'undefined' && hasBody && bodyValue instanceof ReadableStream;
+  const isJsonCandidate =
+    hasBody && !isFormData && !isUrlEncoded && !isBlob && !isArrayBuffer && !isReadable;
+  if (isJsonCandidate && !(mergedHeaders as Record<string, string>)['Content-Type']) {
+    (mergedHeaders as Record<string, string>)['Content-Type'] = 'application/json';
+  }
+
+  const response = await fetch(url, {
+    credentials: 'include',
+    headers: mergedHeaders,
+    ...init,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (response.status === 204 || contentType === '') {
+    return undefined as unknown as T;
+  }
+  if (contentType.includes('application/json')) {
+    try {
+      const data = await response.json();
+      return data as T;
+    } catch {
+      const text = await response.text();
+      return text as unknown as T;
+    }
+  }
+  const text = await response.text();
+  return text as unknown as T;
+}
+
+export function buildQueryString(params: Record<string, any>): string {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+function apiGet<T>(path: string, params?: Record<string, any>) {
+  const queryString = params ? buildQueryString(params) : '';
+  return request<T>(`${path}${queryString}`);
+}
+
+function apiPost<T>(path: string, data?: any) {
+  return request<T>(path, {
+    method: 'POST',
+    body: data ? JSON.stringify(data) : undefined,
+  });
+}
 
 // 페이지네이션된 공지사항 조회
 export const getNotices = async (page: number = 1): Promise<NoticesResponse> => {
   try {
-    const response = await fetch(`${BASE_URL}/notices?page=${page}`);
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('API Error Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
-      throw new Error(`Failed to fetch notices with status: ${response.status}`);
-    }
-
-    const result = (await response.json()) as { notices: Notice[]; page_info: PageInfo };
-    console.log('Received notices from API:', result);
-
-    // 새로운 API 응답 형식에 맞게 처리
-    if (result.notices && result.page_info) {
+    const result = await apiGet<{ notices: Notice[]; page_info: PageInfo }>(`/api/notices`, {
+      page,
+    });
+    if (result && (result as any).notices && (result as any).page_info) {
       return {
-        notices: result.notices,
-        page_info: result.page_info,
+        notices: (result as any).notices,
+        page_info: (result as any).page_info,
       };
-    } else {
-      throw new Error('Unexpected API response format');
     }
+    throw new Error('Unexpected API response format');
   } catch (error) {
-    console.error('Error in getNotices function:', error);
-    // 에러 시 빈 응답 반환
     return {
       notices: [],
       page_info: {
@@ -47,29 +107,10 @@ export const getNotices = async (page: number = 1): Promise<NoticesResponse> => 
 // 공지사항 단건 조회
 export const getNoticeById = async (id: number): Promise<Notice | null> => {
   try {
-    const response = await fetch(`${BASE_URL}/notice?id=${id}`);
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('API Error Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
-      throw new Error(`Failed to fetch notice with status: ${response.status}`);
-    }
-
-    const result = (await response.json()) as Notice;
-    console.log('Received notice from API:', result);
-
-    // 공지사항 단건 조회 응답 처리
-    if (result.id && result.title && result.content) {
-      return result as Notice;
-    } else {
-      throw new Error('Unexpected API response format');
-    }
+    const result = await apiGet<Notice>(`/api/notice`, { id });
+    if ((result as any)?.id) return result as Notice;
+    throw new Error('Unexpected API response format');
   } catch (error) {
-    console.error('Error in getNoticeById function:', error);
     return null;
   }
 };
@@ -77,25 +118,9 @@ export const getNoticeById = async (id: number): Promise<Notice | null> => {
 // 캘린더 일정 조회 (전체 또는 특정 날짜)
 export const getCalendarEvents = async (date?: string): Promise<CalendarResponse> => {
   try {
-    const url = date ? `${BASE_URL}/calendar?date=${date}` : `${BASE_URL}/calendar`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('Calendar API Error Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
-      throw new Error(`Failed to fetch calendar events with status: ${response.status}`);
-    }
-
-    const result = (await response.json()) as CalendarResponse;
-    console.log('Received calendar events from API:', result);
-
+    const result = await apiGet<CalendarResponse>(`/api/calendar`, date ? { date } : undefined);
     return result;
   } catch (error) {
-    console.error('Error in getCalendarEvents function:', error);
     return [];
   }
 };
@@ -108,37 +133,6 @@ interface SubscriptionPayload {
   platform: string;
 }
 
-/**
- * 생성된 FCM 토큰을 백엔드 서버에 등록합니다.
- * @param payload fcm_token, student_no, platform 정보
- */
 export const subscribeToPushNotifications = async (payload: SubscriptionPayload) => {
-  try {
-    console.log('서버에 FCM 토큰 등록 중...', payload);
-
-    const response = await fetch(`${BASE_URL}/subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('FCM 토큰 등록 실패:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText,
-      });
-      throw new Error(`FCM 토큰 등록 실패: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log('FCM 토큰 등록 성공:', result);
-    return result;
-  } catch (error) {
-    console.error('FCM 토큰 등록 중 오류:', error);
-    throw error;
-  }
+  return apiPost<any>(`/api/subscriptions`, payload);
 };
