@@ -4,10 +4,14 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { Platform, View, Pressable, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const tint = Colors[colorScheme ?? 'light'].tint;
+  const colorScheme = useColorScheme() ?? 'light';
+  const tint = useThemeColor({ light: Colors.light.tint, dark: Colors.dark.tint }, 'tint');
+  const backgroundColor = useThemeColor({ light: 'rgba(255,255,255,0.97)', dark: 'rgba(36, 39, 42, 0.97)' }, 'background');
+  const inactiveTintColor = useThemeColor({ light: '#8E8E93', dark: Colors.dark.tabIconDefault }, 'tabIconDefault');
+
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
@@ -64,7 +68,7 @@ export default function TabLayout() {
       <View
         accessibilityRole="tablist"
         style={{
-          backgroundColor: 'rgba(255,255,255,0.97)',
+          backgroundColor: backgroundColor,
           // 콘텐츠를 위로 붙이기 위해 상단 패딩을 줄이고 하단 패딩을 늘림
           paddingTop: 6,
           paddingBottom: Math.max(14, insets.bottom),
@@ -91,13 +95,13 @@ export default function TabLayout() {
                 }}
               >
                 <View style={{ marginBottom: 4 }}>
-                  {renderIcon(tab.icon, active ? tint : '#8E8E93')}
+                  {renderIcon(tab.icon, active ? tint : inactiveTintColor)}
                 </View>
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: '600',
-                    color: active ? tint : '#8E8E93',
+                    color: active ? tint : inactiveTintColor,
                     lineHeight: 18,
                     letterSpacing: 0.2,
                   }}
@@ -117,7 +121,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: tint,
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarInactiveTintColor: inactiveTintColor,
         tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontSize: 16,
@@ -134,6 +138,8 @@ export default function TabLayout() {
           height: 72,
           paddingTop: 10,
           paddingBottom: 12,
+          backgroundColor: backgroundColor,
+          borderTopColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
         },
       }}
       {...(Platform.OS === 'web' ? { tabBar: () => <WebTabBar /> } : {})}
