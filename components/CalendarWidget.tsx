@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'rea
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useCalendar } from '../hooks/useCalendar';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface CalendarWidgetProps {
   onDateSelect?: (date: Date) => void;
@@ -127,6 +129,10 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
     onDateSelect?.(selectedDate);
   };
 
+  const colorScheme = useColorScheme() ?? 'light';
+
+  const styles = getDynamicStyles(colorScheme);
+
   // 달력 날짜들 생성
   const renderCalendarDays = () => {
     const days = [];
@@ -201,7 +207,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
             accessibilityRole="button"
             accessibilityLabel="이전 달"
           >
-            <ChevronIcon direction="left" />
+            <ChevronIcon direction="left" color={styles.navButtonText.color} />
           </TouchableOpacity>
 
           <ThemedText style={styles.monthYear}>
@@ -214,7 +220,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
             accessibilityRole="button"
             accessibilityLabel="다음 달"
           >
-            <ChevronIcon direction="right" />
+            <ChevronIcon direction="right" color={styles.navButtonText.color} />
           </TouchableOpacity>
         </View>
 
@@ -236,7 +242,7 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={styles.navButtonText.color} />
             <Text style={styles.loadingText}>일정을 불러오는 중...</Text>
           </View>
         ) : error ? (
@@ -269,244 +275,260 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 15,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const getDynamicStyles = (colorScheme: 'light' | 'dark' | null | undefined) => {
+  const isDarkMode = colorScheme === 'dark';
+
+  const containerBackgroundColor = isDarkMode ? 'rgba(36, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const cardBodyBackgroundColor = isDarkMode ? 'rgba(36, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const headerBackgroundColor = isDarkMode ? 'rgba(0, 122, 255, 0.15)' : 'rgba(0, 122, 255, 0.05)';
+  const monthYearColor = isDarkMode ? '#E0E0E0' : '#1C1C1E';
+  const weekDaysContainerBackgroundColor = isDarkMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.02)';
+  const weekDayTextColor = isDarkMode ? '#9E9E9E' : '#8E8E93';
+  const dayTextColor = isDarkMode ? '#E0E0E0' : '#1C1C1E';
+  const legendBackgroundColor = isDarkMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.02)';
+  const loadingTextColor = isDarkMode ? '#9E9E9E' : '#8E8E93';
+  const errorSubTextColor = isDarkMode ? '#9E9E9E' : '#8E8E93';
+  const navButtonTextColor = isDarkMode ? '#0A84FF' : '#007AFF';
+
+  return StyleSheet.create({
+    container: {
+      marginHorizontal: 16,
+      marginTop: 8,
+      marginBottom: 15,
+      borderRadius: 20,
+      backgroundColor: containerBackgroundColor,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: isDarkMode ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+      overflow: 'hidden',
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  cardBody: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingBottom: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    backgroundColor: 'rgba(0,122,255,0.05)',
-  },
-  navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navButtonText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#007AFF',
-  },
-  monthYear: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1C1E',
-  },
-  weekDaysContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(0,0,0,0.02)',
-  },
-  weekDayContainer: {
-    width: '14.28%',
-    alignItems: 'center',
-  },
-  weekDayText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
-  sundayText: {
-    color: '#FF3B30',
-  },
-  saturdayText: {
-    color: '#007AFF',
-    fontWeight: '700',
-  },
-  calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    height: 280, // 더 많은 공간 확보
-  },
-  dayContainer: {
-    width: '14.28%',
-    height: 40, // aspectRatio 대신 고정 높이 사용
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    marginVertical: 2,
-  },
-  emptyDay: {
-    fontSize: 16,
-  },
-  dayText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1C1C1E',
-  },
-  todayContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 18,
-    backgroundColor: '#6296ffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    cardBody: {
+      backgroundColor: cardBodyBackgroundColor,
+      paddingBottom: 0,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  todayText: {
-    color: 'white',
-    fontWeight: '700',
-  },
-  regularRollCallDot: {
-    display: 'none',
-  },
-  cleaningRollCallDot: {
-    display: 'none',
-  },
-  legend: {
-    flex: 1,
-    marginTop: 0,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: 'rgba(0,0,0,0.02)',
-    alignItems: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  legendRegularDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFD700',
-    marginRight: 8,
-  },
-  legendCleaningDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#007AFF',
-    marginRight: 8,
-  },
-  legendRegularText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFD700',
-  },
-  legendCleaningText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  paymentDot: {
-    display: 'none',
-  },
-  dotsRow: {
-    position: 'absolute',
-    bottom: 2,
-    flexDirection: 'row',
-    gap: 2,
-  },
-  dotBase: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  dotRegular: {
-    backgroundColor: '#FFD700',
-    shadowColor: '#FFD700',
-  },
-  dotCleaning: {
-    backgroundColor: '#007AFF',
-    shadowColor: '#007AFF',
-  },
-  dotPayment: {
-    backgroundColor: '#34C759',
-    shadowColor: '#34C759',
-  },
-  legendPaymentDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#34C759',
-    marginRight: 8,
-  },
-  legendPaymentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#34C759',
-  },
-  loadingContainer: {
-    height: 280,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    height: 280,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#FF3B30',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  errorSubText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-});
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 16,
+      backgroundColor: headerBackgroundColor,
+    },
+    navButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'transparent',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    navButtonText: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: navButtonTextColor,
+    },
+    monthYear: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: monthYearColor,
+    },
+    weekDaysContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: weekDaysContainerBackgroundColor,
+    },
+    weekDayContainer: {
+      width: '14.28%',
+      alignItems: 'center',
+    },
+    weekDayText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: weekDayTextColor,
+    },
+    sundayText: {
+      color: '#FF3B30',
+    },
+    saturdayText: {
+      color: navButtonTextColor, // Use the same color as navButtonText for consistency
+      fontWeight: '700',
+    },
+    calendarGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      height: 280, // 더 많은 공간 확보
+    },
+    dayContainer: {
+      width: '14.28%',
+      height: 40, // aspectRatio 대신 고정 높이 사용
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      marginVertical: 2,
+    },
+    emptyDay: {
+      fontSize: 16,
+    },
+    dayText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: dayTextColor,
+    },
+    todayContainer: {
+      width: 28,
+      height: 28,
+      borderRadius: 18,
+      backgroundColor: '#6296ffff',
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#007AFF',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    todayText: {
+      color: 'white',
+      fontWeight: '700',
+    },
+    regularRollCallDot: {
+      display: 'none',
+    },
+    cleaningRollCallDot: {
+      display: 'none',
+    },
+    legend: {
+      flex: 1,
+      marginTop: 0,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      backgroundColor: legendBackgroundColor,
+      alignItems: 'center',
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+    },
+    legendContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 16,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+    legendRegularDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#FFD700',
+      marginRight: 8,
+    },
+    legendCleaningDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#007AFF',
+      marginRight: 8,
+    },
+    legendRegularText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#FFD700',
+    },
+    legendCleaningText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#007AFF',
+    },
+    paymentDot: {
+      display: 'none',
+    },
+    dotsRow: {
+      position: 'absolute',
+      bottom: 2,
+      flexDirection: 'row',
+      gap: 2,
+    },
+    dotBase: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.3,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    dotRegular: {
+      backgroundColor: '#FFD700',
+      shadowColor: '#FFD700',
+    },
+    dotCleaning: {
+      backgroundColor: '#007AFF',
+      shadowColor: '#007AFF',
+    },
+    dotPayment: {
+      backgroundColor: '#34C759',
+      shadowColor: '#34C759',
+    },
+    legendPaymentDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: '#34C759',
+      marginRight: 8,
+    },
+    legendPaymentText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#34C759',
+    },
+    loadingContainer: {
+      height: 280,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 40,
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 14,
+      color: loadingTextColor,
+      fontWeight: '500',
+    },
+    errorContainer: {
+      height: 280,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 40,
+      paddingHorizontal: 20,
+    },
+    errorText: {
+      fontSize: 16,
+      color: '#FF3B30',
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    errorSubText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: errorSubTextColor,
+      textAlign: 'center',
+    },
+  });
+};
