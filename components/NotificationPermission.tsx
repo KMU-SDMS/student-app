@@ -5,6 +5,7 @@ import { ThemedText } from './ThemedText';
 import { usePushNotification } from '../hooks/usePushNotification';
 import { Colors } from '../constants/Colors';
 import { useColorScheme } from '../hooks/useColorScheme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface NotificationPermissionProps {
   onPermissionGranted?: () => void;
@@ -21,6 +22,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const accent = useThemeColor({ light: '#007AFF', dark: '#0A84FF' }, 'tint');
 
   const {
     isSupported,
@@ -256,7 +258,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           <TouchableOpacity
             style={{
               flex: 1,
-              backgroundColor: colors.tint,
+              backgroundColor: accent,
               paddingVertical: compact ? 8 : 12,
               paddingHorizontal: 16,
               borderRadius: 6,
