@@ -4,21 +4,21 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { Platform, View, Pressable, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const tint = useThemeColor({ light: Colors.light.tint, dark: Colors.dark.tint }, 'tint');
-  const backgroundColor = useThemeColor({ light: 'rgba(255,255,255,0.97)', dark: 'rgba(36, 39, 42, 0.97)' }, 'background');
-  const inactiveTintColor = useThemeColor({ light: '#8E8E93', dark: Colors.dark.tabIconDefault }, 'tabIconDefault');
-
+  const colorScheme = useColorScheme();
+  const tint = Colors[colorScheme ?? 'light'].tint;
+  const inactive = Colors[colorScheme ?? 'light'].tabIconDefault;
+  const background = Colors[colorScheme ?? 'light'].background;
+  const isDark = colorScheme === 'dark';
+  const isIOS = Platform.OS === 'ios';
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
   // 웹 전용 커스텀 탭 바 (아이콘 없이 레이블만, 상단 여백 확보)
   const WebTabBar = () => {
     const tabs = [
-      { href: '/home' as const, title: '홈', icon: 'home' as const },
+      { href: '/' as const, title: '홈', icon: 'home' as const },
       { href: '/service' as const, title: '서비스', icon: 'service' as const },
       { href: '/settings' as const, title: '설정', icon: 'settings' as const },
     ] as const;
@@ -68,7 +68,9 @@ export default function TabLayout() {
       <View
         accessibilityRole="tablist"
         style={{
-          backgroundColor: backgroundColor,
+          backgroundColor: background,
+          borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+          borderTopWidth: 1,
           // 콘텐츠를 위로 붙이기 위해 상단 패딩을 줄이고 하단 패딩을 늘림
           paddingTop: 6,
           paddingBottom: Math.max(14, insets.bottom),
@@ -82,7 +84,7 @@ export default function TabLayout() {
         {tabs.map((tab) => {
           const active = pathname === tab.href;
           return (
-            <Link key={tab.href} href={tab.href as any} asChild>
+            <Link key={tab.href} href={tab.href} asChild>
               <Pressable
                 role="tab"
                 accessibilityState={{ selected: active }}
@@ -95,13 +97,13 @@ export default function TabLayout() {
                 }}
               >
                 <View style={{ marginBottom: 4 }}>
-                  {renderIcon(tab.icon, active ? tint : inactiveTintColor)}
+                  {renderIcon(tab.icon, active ? tint : inactive)}
                 </View>
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: '600',
-                    color: active ? tint : inactiveTintColor,
+                    color: active ? tint : inactive,
                     lineHeight: 18,
                     letterSpacing: 0.2,
                   }}
@@ -121,7 +123,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: tint,
-        tabBarInactiveTintColor: inactiveTintColor,
+        tabBarInactiveTintColor: inactive,
         tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontSize: 16,
@@ -138,9 +140,22 @@ export default function TabLayout() {
           height: 72,
           paddingTop: 10,
           paddingBottom: 12,
-          backgroundColor: backgroundColor,
-          borderTopColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+          backgroundColor: isIOS ? 'transparent' : background,
+          borderTopColor: isIOS
+            ? 'transparent'
+            : isDark
+              ? 'rgba(255,255,255,0.08)'
+              : 'rgba(0,0,0,0.08)',
+          borderTopWidth: isIOS ? 0 : 1,
         },
+        ...(isIOS
+          ? {
+              tabBarBackground: () => {
+                const IOSBg = require('@/components/ui/TabBarBackground').default as any;
+                return IOSBg ? <IOSBg /> : null;
+              },
+            }
+          : {}),
       }}
       {...(Platform.OS === 'web' ? { tabBar: () => <WebTabBar /> } : {})}
     >
