@@ -14,7 +14,7 @@ export default function TabLayout() {
   // 웹 전용 커스텀 탭 바 (아이콘 없이 레이블만, 상단 여백 확보)
   const WebTabBar = () => {
     const tabs = [
-      { href: '/' as const, title: '홈', icon: 'home' as const },
+      { href: '/home' as const, title: '홈', icon: 'home' as const },
       { href: '/service' as const, title: '서비스', icon: 'service' as const },
       { href: '/settings' as const, title: '설정', icon: 'settings' as const },
     ] as const;
@@ -78,7 +78,7 @@ export default function TabLayout() {
         {tabs.map((tab) => {
           const active = pathname === tab.href;
           return (
-            <Link key={tab.href} href={tab.href} asChild>
+            <Link key={tab.href} href={tab.href as any} asChild>
               <Pressable
                 role="tab"
                 accessibilityState={{ selected: active }}
