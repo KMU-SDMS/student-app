@@ -5,7 +5,7 @@ import CalendarWidget from '@/components/CalendarWidget';
 import NoticeSection from '@/components/NoticeSection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
+export default function HomeTabScreen() {
   const insets = useSafeAreaInsets();
 
   return (
@@ -15,7 +15,6 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={[styles.content, { paddingTop: insets.top + 20 }]}>
-        {/* 환영 메시지 */}
         <ThemedView style={styles.welcomeSection}>
           <ThemedText type="title" style={styles.welcomeTitle}>
             안녕하세요! 👋
@@ -24,11 +23,7 @@ export default function HomeScreen() {
             스마트 기숙사 시스템에 오신 것을 환영합니다
           </ThemedText>
         </ThemedView>
-
-        {/* 캘린더 위젯 */}
         <CalendarWidget />
-
-        {/* 공지사항 섹션 */}
         <NoticeSection />
       </ThemedView>
     </ScrollView>

@@ -15,10 +15,11 @@ export default function TabLayout() {
   const WebTabBar = () => {
     const tabs = [
       { href: '/' as const, title: '홈', icon: 'home' as const },
+      { href: '/service' as const, title: '서비스', icon: 'service' as const },
       { href: '/settings' as const, title: '설정', icon: 'settings' as const },
     ] as const;
 
-    const renderIcon = (name: 'home' | 'settings', color: string) => {
+    const renderIcon = (name: 'home' | 'service' | 'settings', color: string) => {
       const size = 24;
       if (name === 'home') {
         // 단순 홈 아이콘 (SVG)
@@ -26,6 +27,17 @@ export default function TabLayout() {
           <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden>
             <path d="M11.47 3.84a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1-1.06 1.06l-.72-.72V19.5A2.25 2.25 0 0 1 16 21.75H8A2.25 2.25 0 0 1 5.25 19.5v-7.82l-.72.72a.75.75 0 1 1-1.06-1.06l7.5-7.5Z" />
             <path d="M12 4.91 6.75 10.16V19.5c0 .414.336.75.75.75h9a.75.75 0 0 0 .75-.75v-9.34L12 4.91Z" />
+          </svg>
+        );
+      }
+      if (name === 'service') {
+        // 서비스 아이콘: 그리드 형태 (4개 사각형)
+        return (
+          <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden>
+            <rect x="4" y="4" width="7" height="7" rx="1.5" />
+            <rect x="13" y="4" width="7" height="7" rx="1.5" />
+            <rect x="4" y="13" width="7" height="7" rx="1.5" />
+            <rect x="13" y="13" width="7" height="7" rx="1.5" />
           </svg>
         );
       }
@@ -130,6 +142,12 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '홈',
+        }}
+      />
+      <Tabs.Screen
+        name="service"
+        options={{
+          title: '서비스',
         }}
       />
       <Tabs.Screen
