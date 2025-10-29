@@ -12,6 +12,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -82,6 +83,8 @@ const bankAccounts = [
 export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'light';
+  const styles = getDynamicStyles(colorScheme);
 
   const handlePaymentComplete = () => {
     Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다. 홈 화면으로 이동합니다.', [
@@ -105,7 +108,7 @@ export default function PaymentScreen() {
           accessibilityLabel="뒤로가기"
         >
           <View style={styles.backButtonCircle}>
-            <ChevronIcon direction="left" size={12} color="#000" />
+            <ChevronIcon direction="left" size={12} color={styles.headerTitle.color as string} />
           </View>
         </TouchableOpacity>
 
@@ -168,138 +171,156 @@ export default function PaymentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F4F5F7',
-  },
-  contentScroll: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 20,
-    paddingTop: 20, // 헤더 바 아래로 여백 조정
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    marginHorizontal: 20,
-  },
-  headerSpacer: {
-    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
-  },
-  backButton: {
-    // position과 zIndex 제거
-  },
-  backButtonCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
+const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
+  const isDarkMode = colorScheme === 'dark';
+
+  const containerBackgroundColor = isDarkMode ? '#121212' : '#F4F5F7';
+  const headerBackgroundColor = isDarkMode ? 'rgba(36, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const headerBorderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  const headerTextColor = isDarkMode ? '#E0E0E0' : '#000';
+  const cardBackgroundColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
+  const cardTitleColor = isDarkMode ? '#E0E0E0' : '#333';
+  const infoRowBorderColor = isDarkMode ? '#2C2C2E' : '#F0F0F0';
+  const labelColor = isDarkMode ? '#B0B0B0' : '#666';
+  const valueColor = isDarkMode ? '#E0E0E0' : '#333';
+  const amountColor = isDarkMode ? '#0A84FF' : '#007AFF';
+  const bankNameColor = isDarkMode ? '#C0C0C0' : '#555';
+  const accountNumberContainerColor = isDarkMode ? '#2C2C2E' : '#F7F7F7';
+  const bottomContainerBackgroundColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
+  const bottomContainerBorderColor = isDarkMode ? '#2C2C2E' : '#EFEFEF';
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: containerBackgroundColor,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: '#333',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  label: {
-    fontSize: 15,
-    color: '#666',
-  },
-  value: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#333',
-  },
-  amount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007AFF',
-  },
-  accountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  bankName: {
-    fontSize: 15,
-    color: '#555',
-  },
-  accountNumberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F7F7F7',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-  },
-  accountNumber: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
-  copyText: {
-    marginLeft: 8,
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  bottomContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#EFEFEF',
-    backgroundColor: '#FFFFFF',
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+    contentScroll: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 20,
+      paddingTop: 20,
+    },
+    headerBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      backgroundColor: headerBackgroundColor,
+      borderBottomWidth: 1,
+      borderBottomColor: headerBorderColor,
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 18,
+      fontWeight: '600',
+      marginHorizontal: 20,
+      color: headerTextColor,
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    backButton: {},
+    backButtonCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'transparent',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    card: {
+      backgroundColor: cardBackgroundColor,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: isDarkMode ? 0.1 : 0.05,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 10,
+      color: cardTitleColor,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: infoRowBorderColor,
+    },
+    label: {
+      fontSize: 15,
+      color: labelColor,
+    },
+    value: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: valueColor,
+    },
+    amount: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: amountColor,
+    },
+    accountRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: infoRowBorderColor,
+    },
+    bankName: {
+      fontSize: 15,
+      color: bankNameColor,
+    },
+    accountNumberContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: accountNumberContainerColor,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+    },
+    accountNumber: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: valueColor,
+    },
+    copyText: {
+      marginLeft: 8,
+      fontSize: 12,
+      color: amountColor,
+      fontWeight: '600',
+    },
+    bottomContainer: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderTopWidth: 1,
+      borderTopColor: bottomContainerBorderColor,
+      backgroundColor: bottomContainerBackgroundColor,
+    },
+    button: {
+      backgroundColor: amountColor,
+      paddingVertical: 15,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });
+};
