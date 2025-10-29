@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getNoticeById } from '@/services/apiService';
 import { Notice } from '@/types/notice';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -75,6 +76,9 @@ export default function NoticeDetailScreen() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const colorScheme = useColorScheme() ?? 'light';
+  const styles = getDynamicStyles(colorScheme);
 
   useEffect(() => {
     const fetchNotice = async () => {
@@ -149,7 +153,7 @@ export default function NoticeDetailScreen() {
           accessibilityLabel="뒤로가기"
         >
           <View style={styles.backButtonCircle}>
-            <ChevronIcon direction="left" size={12} color="#000" />
+            <ChevronIcon direction="left" size={12} color={styles.headerTitle.color as string} />
           </View>
         </TouchableOpacity>
 
@@ -165,100 +169,110 @@ export default function NoticeDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 20, // 헤더 바 아래로 여백 조정
-  },
-  header: {
-    marginTop: 20,
-    marginBottom: 24,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  importantBadge: {
-    backgroundColor: '#FF3B30',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  importantText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  title: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: '600',
-    lineHeight: 32,
-  },
-  date: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  contentContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-  },
-  content: {
-    fontSize: 16,
-    lineHeight: 24,
-    opacity: 0.9,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    marginHorizontal: 20,
-  },
-  headerSpacer: {
-    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
-  },
-  backButton: {
-    // position과 zIndex 제거
-  },
-  backButtonCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingIndicator: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-    color: '#FF3B30',
-  },
-});
+const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
+  const isDarkMode = colorScheme === 'dark';
+
+  const headerBackgroundColor = isDarkMode ? 'rgba(36, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const headerBorderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  const headerTextColor = isDarkMode ? '#E0E0E0' : '#000';
+  const contentBackgroundColor = isDarkMode ? '#2C2C2E' : '#FFFFFF';
+  const contentBorderColor = isDarkMode ? '#3A3A3C' : '#EAEAEA';
+  const importantBadgeColor = isDarkMode ? '#FF453A' : '#FF3B30';
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      paddingTop: 20,
+    },
+    header: {
+      marginTop: 20,
+      marginBottom: 24,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    importantBadge: {
+      backgroundColor: importantBadgeColor,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+      marginRight: 12,
+    },
+    importantText: {
+      color: 'white',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    title: {
+      flex: 1,
+      fontSize: 24,
+      fontWeight: '600',
+      lineHeight: 32,
+    },
+    date: {
+      fontSize: 14,
+      opacity: 0.7,
+    },
+    contentContainer: {
+      backgroundColor: contentBackgroundColor,
+      borderRadius: 12,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: contentBorderColor,
+    },
+    content: {
+      fontSize: 16,
+      lineHeight: 24,
+      opacity: 0.9,
+    },
+    headerBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      backgroundColor: headerBackgroundColor,
+      borderBottomWidth: 1,
+      borderBottomColor: headerBorderColor,
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 18,
+      fontWeight: '600',
+      marginHorizontal: 20,
+      color: headerTextColor,
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    backButton: {},
+    backButtonCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'transparent',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingIndicator: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    errorText: {
+      textAlign: 'center',
+      marginTop: 50,
+      fontSize: 16,
+      color: importantBadgeColor,
+    },
+  });
+};
