@@ -22,7 +22,13 @@ export default function RootIndexRedirect() {
           signal: controller.signal,
         });
         if (resp.ok || resp.status === 403) {
-          if (typeof window !== 'undefined') window.location.replace('/home');
+          // 세션 존재 시 루트로 보내 탭 홈을 표시
+          if (typeof window !== 'undefined') {
+            // 이미 루트면 아무 것도 하지 않음
+            if (window.location.pathname !== '/') {
+              window.location.replace('/');
+            }
+          }
           return;
         }
         if (resp.status === 401) {
