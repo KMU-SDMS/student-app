@@ -22,7 +22,10 @@ export default function RootIndexRedirect() {
           signal: controller.signal,
         });
         if (resp.ok || resp.status === 403) {
-          if (typeof window !== 'undefined') window.location.replace('/home');
+          // 세션 존재 시 /home으로 이동해 홈 콘텐츠 표시
+          if (typeof window !== 'undefined' && window.location.pathname !== '/home') {
+            window.location.replace('/home');
+          }
           return;
         }
         if (resp.status === 401) {

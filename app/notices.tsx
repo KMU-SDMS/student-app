@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { getNotices } from '@/services/apiService';
 import { Notice, NoticesResponse } from '@/types/notice';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -77,6 +78,8 @@ export default function NoticesScreen() {
   const [hasMorePages, setHasMorePages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const colorScheme = useColorScheme() ?? 'light';
+  const styles = getDynamicStyles(colorScheme);
 
   const fetchNotices = async (page: number = 1, append: boolean = false) => {
     try {
@@ -228,7 +231,7 @@ export default function NoticesScreen() {
           accessibilityLabel="뒤로가기"
         >
           <View style={styles.backButtonCircle}>
-            <ChevronIcon direction="left" size={12} color="#000" />
+            <ChevronIcon direction="left" size={12} color={styles.headerTitle.color as string} />
           </View>
         </TouchableOpacity>
 
@@ -244,112 +247,123 @@ export default function NoticesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    marginHorizontal: 20,
-  },
-  headerSpacer: {
-    width: 40, // 뒤로가기 버튼과 동일한 너비로 균형 맞춤
-  },
-  listContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 16, // 헤더 바와 내용 사이 간격 추가
-    paddingBottom: 20,
-  },
-  loadingIndicator: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-  },
-  backButton: {
-    // position과 zIndex 제거
-  },
-  backButtonCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noticeItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-  },
-  importantNotice: {
-    borderColor: '#FF3B30',
-    backgroundColor: 'rgba(255,59,48,0.05)',
-  },
-  noticeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  noticeTitleContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  importantBadge: {
-    backgroundColor: '#FF3B30',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  importantText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  noticeTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  noticeDate: {
-    fontSize: 12,
-    opacity: 0.7,
-  },
-  loadingMoreIndicator: {
-    paddingVertical: 20,
-  },
-  noMoreText: {
-    textAlign: 'center',
-    paddingVertical: 20,
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  pageInfoText: {
-    textAlign: 'center',
-    paddingVertical: 10,
-    fontSize: 12,
-    opacity: 0.5,
-  },
-});
+const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
+  const isDarkMode = colorScheme === 'dark';
+
+  const headerBackgroundColor = isDarkMode ? 'rgba(36, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const headerBorderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  const headerTextColor = isDarkMode ? '#E0E0E0' : '#000';
+  const noticeItemBackgroundColor = isDarkMode ? '#2C2C2E' : '#FFFFFF';
+  const noticeItemBorderColor = isDarkMode ? '#3A3A3C' : '#EAEAEA';
+  const importantNoticeBorderColor = isDarkMode ? '#FF453A' : '#FF3B30';
+  const importantNoticeBackgroundColor = isDarkMode ? 'rgba(255, 69, 58, 0.1)' : 'rgba(255, 59, 48, 0.05)';
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    headerBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      backgroundColor: headerBackgroundColor,
+      borderBottomWidth: 1,
+      borderBottomColor: headerBorderColor,
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 18,
+      fontWeight: '600',
+      marginHorizontal: 20,
+      color: headerTextColor,
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    listContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 20,
+    },
+    loadingIndicator: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyText: {
+      textAlign: 'center',
+      marginTop: 50,
+      fontSize: 16,
+    },
+    backButton: {},
+    backButtonCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'transparent',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    noticeItem: {
+      backgroundColor: noticeItemBackgroundColor,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: noticeItemBorderColor,
+    },
+    importantNotice: {
+      borderColor: importantNoticeBorderColor,
+      backgroundColor: importantNoticeBackgroundColor,
+    },
+    noticeHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    noticeTitleContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 8,
+    },
+    importantBadge: {
+      backgroundColor: importantNoticeBorderColor,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+      marginRight: 8,
+    },
+    importantText: {
+      color: 'white',
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    noticeTitle: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    noticeDate: {
+      fontSize: 12,
+      opacity: 0.7,
+    },
+    loadingMoreIndicator: {
+      paddingVertical: 20,
+    },
+    noMoreText: {
+      textAlign: 'center',
+      paddingVertical: 20,
+      fontSize: 14,
+      opacity: 0.6,
+    },
+    pageInfoText: {
+      textAlign: 'center',
+      paddingVertical: 10,
+      fontSize: 12,
+      opacity: 0.5,
+    },
+  });
+};
