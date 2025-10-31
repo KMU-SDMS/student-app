@@ -31,7 +31,7 @@ export default function AuthScreen() {
   const onLogin = () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const redirect = new URL('/home', window.location.origin).toString();
-      window.location.href = `${API_BASE}/auth/login?redirect=${encodeURIComponent(redirect)}`;
+      window.location.href = `${API_BASE}/auth/user/login?redirect=${encodeURIComponent(redirect)}`;
     }
   };
 
