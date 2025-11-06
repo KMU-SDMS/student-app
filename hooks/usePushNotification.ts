@@ -303,10 +303,9 @@ export const usePushNotification = (): UsePushNotificationReturn => {
       if (fcmToken) {
         console.log('FCM 토큰 발급 성공:', fcmToken);
 
-        // 백엔드 API에 맞게 fcm_token 전송
+        // 백엔드 API에 맞게 fcm_token 전송 (학번은 백엔드에서 세션으로 추출)
         await subscribeToPushNotifications({
           fcm_token: fcmToken,
-          student_no: '20243105', // TODO: 실제 학번으로 교체
           platform: 'web',
         });
 

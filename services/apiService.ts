@@ -129,7 +129,6 @@ export const getCalendarEvents = async (date?: string): Promise<CalendarResponse
 
 interface SubscriptionPayload {
   fcm_token: string;
-  student_no: string;
   platform: string;
 }
 
