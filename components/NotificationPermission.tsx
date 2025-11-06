@@ -54,10 +54,6 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
         if (newSubscription) {
           const subscriptionData = getSubscriptionData();
           console.log('구독 데이터:', subscriptionData);
-
-          // TODO: 서버에 구독 정보 전송
-          // await sendSubscriptionToServer(subscriptionData);
-
           Alert.alert(
             '알림 설정 완료',
             '새로운 공지사항이 등록되면 푸시 알림을 받으실 수 있습니다.',
