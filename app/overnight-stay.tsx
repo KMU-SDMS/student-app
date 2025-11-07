@@ -183,11 +183,11 @@ export default function OvernightStayScreen() {
       await submitOvernightStay(payload);
 
       if (Platform.OS === 'web') {
-        setWebSuccessBanner('외박계 신청이 완료되었습니다.');
-        // 2초 후 자동으로 이전 화면으로 이동
+        setWebSuccessBanner('외박계 신청이 완료되었습니다. 결과는 알림으로 전송됩니다.');
+        // 3초 후 자동으로 이전 화면으로 이동
         setTimeout(() => {
           router.back();
-        }, 2000);
+        }, 3000);
       } else {
         Alert.alert('신청 완료', '외박계 신청이 완료되었습니다.', [
           {
