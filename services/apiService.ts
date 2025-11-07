@@ -169,3 +169,38 @@ interface OvernightStayRequest {
 export const submitOvernightStay = async (payload: OvernightStayRequest) => {
   return apiPost<any>(`/api/overnight-stay`, payload);
 };
+
+// 외박계 신청 내역 조회
+export interface OvernightStayItem {
+  id: number;
+  studentIdNum: string;
+  studentName: string;
+  roomNumber: number;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  semester: string;
+  createdAt: string;
+}
+
+export interface OvernightStaySummary {
+  currentSemester: string;
+  approvedCount: number;
+  remainingCount: number;
+}
+
+export interface OvernightStayResponse {
+  data: OvernightStayItem[];
+  summary: OvernightStaySummary;
+}
+
+export const getOvernightStayHistory = async (): Promise<OvernightStayResponse | null> => {
+  try {
+    const result = await apiGet<OvernightStayResponse>(`/api/overnight-stay`);
+    return result;
+  } catch (error) {
+    console.error('Error fetching overnight stay history:', error);
+    return null;
+  }
+};

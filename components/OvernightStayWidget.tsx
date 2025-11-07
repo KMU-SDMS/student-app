@@ -1,17 +1,41 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useRouter } from 'expo-router';
+import { getOvernightStayHistory, OvernightStaySummary } from '@/services/apiService';
 
 export default function OvernightStayWidget() {
   const router = useRouter();
   const maxApplications = 3;
-  const usedApplications = 1; // 현재 사용한 횟수 (실제로는 API에서 가져와야 함)
-  const remainingApplications = maxApplications - usedApplications;
+  const [summary, setSummary] = useState<OvernightStaySummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getOvernightStayHistory();
+        if (response?.summary) {
+          setSummary(response.summary);
+        }
+      } catch (error) {
+        console.error('Failed to fetch overnight stay summary:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const remainingApplications = summary?.remainingCount ?? 0;
+  const isDisabled = remainingApplications === 0;
 
   const handlePress = () => {
-    router.push('/overnight-stay');
+    if (!isDisabled) {
+      router.push('/overnight-stay');
+    }
   };
 
   return (
@@ -20,30 +44,45 @@ export default function OvernightStayWidget() {
         <ThemedText type="subtitle" style={styles.title}>
           외박계 신청
         </ThemedText>
-        <View style={styles.badge}>
-          <ThemedText style={styles.badgeText}>
-            {remainingApplications}/{maxApplications}
-          </ThemedText>
-        </View>
+        {isLoading ? (
+          <ActivityIndicator size="small" />
+        ) : (
+          <View style={[styles.badge, isDisabled && styles.badgeDisabled]}>
+            <ThemedText style={styles.badgeText}>
+              {remainingApplications}/{maxApplications}
+            </ThemedText>
+          </View>
+        )}
       </View>
 
-      <TouchableOpacity style={styles.cardButton} onPress={handlePress} activeOpacity={0.7}>
-        <View style={styles.iconContainer}>
+      <TouchableOpacity
+        style={[styles.cardButton, isDisabled && styles.cardButtonDisabled]}
+        onPress={handlePress}
+        activeOpacity={isDisabled ? 1 : 0.7}
+        disabled={isDisabled}
+      >
+        <View style={[styles.iconContainer, isDisabled && styles.iconContainerDisabled]}>
           <ThemedText style={styles.icon}>🏠</ThemedText>
         </View>
         <View style={styles.content}>
-          <ThemedText style={styles.cardTitle}>외박계 신청하기</ThemedText>
-          <ThemedText style={styles.cardDescription}>
-            남은 신청 횟수: {remainingApplications}회
+          <ThemedText style={[styles.cardTitle, isDisabled && styles.cardTitleDisabled]}>
+            외박계 신청하기
+          </ThemedText>
+          <ThemedText style={[styles.cardDescription, isDisabled && styles.cardDescriptionDisabled]}>
+            {isLoading
+              ? '로딩 중...'
+              : isDisabled
+                ? '신청 가능 횟수를 모두 사용했습니다'
+                : `남은 신청 횟수: ${remainingApplications}회`}
           </ThemedText>
         </View>
-        <ThemedText style={styles.arrow}>›</ThemedText>
+        <ThemedText style={[styles.arrow, isDisabled && styles.arrowDisabled]}>›</ThemedText>
       </TouchableOpacity>
 
-      {remainingApplications === 0 && (
+      {isDisabled && !isLoading && (
         <View style={styles.warningContainer}>
           <ThemedText style={styles.warningText}>
-            ⚠️ 이번 달 신청 가능 횟수를 모두 사용했습니다
+            ⚠️ 이번 학기 신청 가능 횟수를 모두 사용했습니다
           </ThemedText>
         </View>
       )}
@@ -74,6 +113,9 @@ const styles = StyleSheet.create({
     minWidth: 40,
     alignItems: 'center',
   },
+  badgeDisabled: {
+    backgroundColor: '#999',
+  },
   badgeText: {
     color: 'white',
     fontSize: 12,
@@ -87,6 +129,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  cardButtonDisabled: {
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    opacity: 0.5,
+  },
   iconContainer: {
     width: 48,
     height: 48,
@@ -94,6 +140,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 122, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  iconContainerDisabled: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   icon: {
     fontSize: 24,
@@ -106,14 +155,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
+  cardTitleDisabled: {
+    opacity: 0.5,
+  },
   cardDescription: {
     fontSize: 13,
     opacity: 0.6,
+  },
+  cardDescriptionDisabled: {
+    opacity: 0.4,
   },
   arrow: {
     fontSize: 28,
     opacity: 0.3,
     fontWeight: '300',
+  },
+  arrowDisabled: {
+    opacity: 0.15,
   },
   warningContainer: {
     marginTop: 12,
