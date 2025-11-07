@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { logger } from '@/utils/logger';
+import { OvernightStayProvider } from '@/contexts/OvernightStayContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -24,35 +25,37 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ffffff" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SDS" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
-        {/* 웹에서 입력 후 스크롤 이상 동작을 줄이기 위한 전역 스타일 */}
-        <style>{`
-          html, body, #root { height: 100%; }
-          /* 페이지 자체의 스크롤을 차단하고 내부 컨테이너만 스크롤하도록 유도 */
-          html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
-          body { position: fixed; width: 100%; overflow: hidden; touch-action: manipulation; }
-          /* iOS 포커스 확대 방지: 입력 요소 폰트 16px 이상 */
-          input, textarea, select, button { font-size: 16px !important; }
-        `}</style>
-      </Head>
-      {Platform.OS === 'web' ? <ResetScrollEffects pathname={pathname} /> : null}
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/index" options={{ headerShown: false }} />
-        <Stack.Screen name="home" options={{ headerShown: false }} />
-        <Stack.Screen name="notices" options={{ headerShown: false }} />
-        <Stack.Screen name="notice-detail" options={{ headerShown: false }} />
-        <Stack.Screen name="payment" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+      <OvernightStayProvider>
+        <Head>
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="theme-color" content="#ffffff" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="SDS" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
+          {/* 웹에서 입력 후 스크롤 이상 동작을 줄이기 위한 전역 스타일 */}
+          <style>{`
+            html, body, #root { height: 100%; }
+            /* 페이지 자체의 스크롤을 차단하고 내부 컨테이너만 스크롤하도록 유도 */
+            html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+            body { position: fixed; width: 100%; overflow: hidden; touch-action: manipulation; }
+            /* iOS 포커스 확대 방지: 입력 요소 폰트 16px 이상 */
+            input, textarea, select, button { font-size: 16px !important; }
+          `}</style>
+        </Head>
+        {Platform.OS === 'web' ? <ResetScrollEffects pathname={pathname} /> : null}
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/index" options={{ headerShown: false }} />
+          <Stack.Screen name="home" options={{ headerShown: false }} />
+          <Stack.Screen name="notices" options={{ headerShown: false }} />
+          <Stack.Screen name="notice-detail" options={{ headerShown: false }} />
+          <Stack.Screen name="payment" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </OvernightStayProvider>
     </ThemeProvider>
   );
 }

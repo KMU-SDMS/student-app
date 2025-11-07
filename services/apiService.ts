@@ -12,6 +12,10 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const url = isAbsoluteUrl(path) ? normalizedPath : `${API_BASE}${normalizedPath}`;
 
   const mergedHeaders: HeadersInit = { ...(init?.headers ?? {}) };
+  // 기본 Accept 헤더 지정 (서버가 JSON 에러를 반환할 때 도움)
+  if (!(mergedHeaders as Record<string, string>)['Accept']) {
+    (mergedHeaders as Record<string, string>)['Accept'] = 'application/json, text/plain, */*';
+  }
   const bodyValue: any = init?.body as any;
   const hasBody = bodyValue !== undefined && bodyValue !== null;
   const isFormData = typeof FormData !== 'undefined' && hasBody && bodyValue instanceof FormData;
@@ -35,8 +39,26 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => '');
-    throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+    const contentType = response.headers.get('content-type') || '';
+    let errorText = '';
+    let errorJson: any = undefined;
+    try {
+      if (contentType.includes('application/json')) {
+        errorJson = await response.json();
+      } else {
+        errorText = await response.text();
+      }
+    } catch {
+      // no-op
+    }
+
+    const serverMessage =
+      (errorJson && (errorJson.message || errorJson.error)) || errorText || response.statusText;
+    const err: any = new Error(`HTTP ${response.status}: ${serverMessage}`);
+    err.status = response.status;
+    err.body = errorJson ?? errorText;
+    err.url = url;
+    throw err;
   }
 
   const contentType = response.headers.get('content-type') || '';
@@ -134,4 +156,51 @@ interface SubscriptionPayload {
 
 export const subscribeToPushNotifications = async (payload: SubscriptionPayload) => {
   return apiPost<any>(`/api/subscriptions`, payload);
+};
+
+// 외박계 신청
+interface OvernightStayRequest {
+  startDate: string; // YYYY-MM-DD 형식
+  endDate: string; // YYYY-MM-DD 형식
+  reason: string;
+  semester: string; // YYYY-S 형식 (예: "2025-2")
+}
+
+export const submitOvernightStay = async (payload: OvernightStayRequest) => {
+  return apiPost<any>(`/api/overnight-stay`, payload);
+};
+
+// 외박계 신청 내역 조회
+export interface OvernightStayItem {
+  id: number;
+  studentIdNum: string;
+  studentName: string;
+  roomNumber: number;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  semester: string;
+  createdAt: string;
+}
+
+export interface OvernightStaySummary {
+  currentSemester: string;
+  approvedCount: number;
+  remainingCount: number;
+}
+
+export interface OvernightStayResponse {
+  data: OvernightStayItem[];
+  summary: OvernightStaySummary;
+}
+
+export const getOvernightStayHistory = async (): Promise<OvernightStayResponse | null> => {
+  try {
+    const result = await apiGet<OvernightStayResponse>(`/api/overnight-stay`);
+    return result;
+  } catch (error) {
+    console.error('Error fetching overnight stay history:', error);
+    return null;
+  }
 };
