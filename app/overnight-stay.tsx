@@ -130,6 +130,12 @@ export default function OvernightStayScreen() {
     setStartDate(selectedDate);
     if (selectedDate > endDate) {
       setEndDate(selectedDate);
+    } else {
+      // 시작일이 변경되면 종료일이 14일을 넘지 않도록 조정
+      const maxEndDate = addDays(selectedDate, 14);
+      if (endDate > maxEndDate) {
+        setEndDate(maxEndDate);
+      }
     }
   };
 
@@ -140,6 +146,18 @@ export default function OvernightStayScreen() {
       else Alert.alert('오류', '종료일은 시작일 다음 날 이상이어야 합니다.');
       return;
     }
+
+    // 외박 기간이 14일을 넘는지 확인
+    const daysDiff = Math.ceil(
+      (selectedDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (daysDiff > 14) {
+      if (Platform.OS === 'web')
+        setWebErrorBanner('외박 기간은 최대 2주(14일)까지 신청 가능합니다.');
+      else Alert.alert('입력 오류', '외박 기간은 최대 2주(14일)까지 신청 가능합니다.');
+      return;
+    }
+
     setEndDate(selectedDate);
   };
 
@@ -169,6 +187,15 @@ export default function OvernightStayScreen() {
       return;
     }
 
+    // 외박 기간이 14일을 넘는지 확인
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysDiff > 14) {
+      if (Platform.OS === 'web')
+        setWebErrorBanner('외박 기간은 최대 2주(14일)까지 신청 가능합니다.');
+      else Alert.alert('입력 오류', '외박 기간은 최대 2주(14일)까지 신청 가능합니다.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -184,17 +211,8 @@ export default function OvernightStayScreen() {
 
       if (Platform.OS === 'web') {
         setWebSuccessBanner('외박계 신청이 완료되었습니다. 결과는 알림으로 전송됩니다.');
-        // 3초 후 자동으로 이전 화면으로 이동
-        setTimeout(() => {
-          router.back();
-        }, 3000);
       } else {
-        Alert.alert('신청 완료', '외박계 신청이 완료되었습니다.', [
-          {
-            text: '확인',
-            onPress: () => router.back(),
-          },
-        ]);
+        Alert.alert('신청 완료', '외박계 신청이 완료되었습니다.');
       }
     } catch (error) {
       // 서버가 내려준 구체 메시지를 우선 노출
@@ -337,6 +355,7 @@ export default function OvernightStayScreen() {
                   value={formatDateForInput(endDate)}
                   onChange={(e) => handleEndDateChange(e.target.value)}
                   min={formatDateForInput(addDays(startDate, 1))}
+                  max={formatDateForInput(addDays(startDate, 14))}
                   style={{
                     backgroundColor: webInputBg,
                     borderRadius: '8px',
@@ -379,6 +398,9 @@ export default function OvernightStayScreen() {
             <ThemedText style={styles.infoTitle}>📌 안내사항</ThemedText>
             <ThemedText style={styles.infoText}>
               • 한 학기에 최대 3회까지 신청 가능합니다
+            </ThemedText>
+            <ThemedText style={styles.infoText}>
+              • 외박 기간은 한 번에 최대 2주(14일)까지 신청 가능합니다
             </ThemedText>
             <ThemedText style={styles.infoText}>• 당일에 신청하는 것은 효력이 없습니다</ThemedText>
             <ThemedText style={styles.infoText}>
