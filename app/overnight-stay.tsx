@@ -16,6 +16,7 @@ import { useRouter, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { submitOvernightStay } from '@/services/apiService';
+import { useOvernightStay } from '@/contexts/OvernightStayContext';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -74,6 +75,7 @@ export default function OvernightStayScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
+  const { refresh } = useOvernightStay();
   const styles = getDynamicStyles(colorScheme);
 
   const addDays = (date: Date, days: number) => {
@@ -208,6 +210,9 @@ export default function OvernightStayScreen() {
       };
 
       await submitOvernightStay(payload);
+
+      // 신청 성공 시 위젯 데이터 새로고침
+      refresh();
 
       if (Platform.OS === 'web') {
         setWebSuccessBanner('외박계 신청이 완료되었습니다. 결과는 알림으로 전송됩니다.');

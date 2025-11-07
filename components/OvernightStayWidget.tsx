@@ -1,57 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useRouter } from 'expo-router';
-import { getOvernightStayHistory, OvernightStaySummary, OvernightStayItem } from '@/services/apiService';
+import {
+  getOvernightStayHistory,
+  OvernightStaySummary,
+  OvernightStayItem,
+} from '@/services/apiService';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useOvernightStay } from '@/contexts/OvernightStayContext';
 
 export default function OvernightStayWidget() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
+  const { registerRefresh } = useOvernightStay();
   const maxApplications = 3;
   const [summary, setSummary] = useState<OvernightStaySummary | null>(null);
   const [history, setHistory] = useState<OvernightStayItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getOvernightStayHistory();
-        if (response) {
-          if (response.summary) {
-            setSummary(response.summary);
-          }
-          if (response.data) {
-            // 필터링: pending은 항상 표시, approved는 종료일이 오늘 이후인 것만
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const filtered = response.data.filter((item) => {
-              if (item.status === 'pending') {
-                return true;
-              }
-              if (item.status === 'approved') {
-                const endDate = new Date(item.endDate);
-                endDate.setHours(0, 0, 0, 0);
-                return endDate >= today;
-              }
-              return false;
-            });
-            
-            setHistory(filtered);
-          }
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await getOvernightStayHistory();
+      if (response) {
+        if (response.summary) {
+          setSummary(response.summary);
         }
-      } catch (error) {
-        console.error('Failed to fetch overnight stay summary:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        if (response.data) {
+          // 필터링: pending은 항상 표시, approved는 종료일이 오늘 이후인 것만
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
 
-    fetchData();
+          const filtered = response.data.filter((item) => {
+            if (item.status === 'pending') {
+              return true;
+            }
+            if (item.status === 'approved') {
+              const endDate = new Date(item.endDate);
+              endDate.setHours(0, 0, 0, 0);
+              return endDate >= today;
+            }
+            return false;
+          });
+
+          setHistory(filtered);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch overnight stay summary:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  const hasRegisteredRef = useRef(false);
+
+  // 초기 마운트 시에만 데이터 로드
+  useEffect(() => {
+    fetchData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Context에 refresh 함수 등록 (마운트 시 한 번만)
+  useEffect(() => {
+    if (!hasRegisteredRef.current) {
+      registerRefresh(fetchData);
+      hasRegisteredRef.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // registerRefresh와 fetchData는 안정적인 참조이므로 dependency에서 제외
 
   const remainingApplications = summary?.remainingCount ?? 0;
   const isDisabled = remainingApplications === 0;
@@ -125,7 +143,9 @@ export default function OvernightStayWidget() {
           <ThemedText style={[styles.cardTitle, isDisabled && styles.cardTitleDisabled]}>
             외박계 신청하기
           </ThemedText>
-          <ThemedText style={[styles.cardDescription, isDisabled && styles.cardDescriptionDisabled]}>
+          <ThemedText
+            style={[styles.cardDescription, isDisabled && styles.cardDescriptionDisabled]}
+          >
             {isLoading
               ? '로딩 중...'
               : isDisabled
@@ -155,7 +175,9 @@ export default function OvernightStayWidget() {
             return (
               <View key={item.id} style={styles.historyItem}>
                 <View style={styles.historyItemHeader}>
-                  <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
+                  <View
+                    style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}
+                  >
                     <ThemedText style={[styles.statusText, { color: statusStyle.textColor }]}>
                       {statusStyle.label}
                     </ThemedText>
