@@ -69,40 +69,40 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
   };
 
   // 구독 상태 조회 함수
-  const fetchSubscriptionStatus = useCallback(async () => {
-    if (!subscription || permission !== 'granted') {
-      return;
-    }
+  // const fetchSubscriptionStatus = useCallback(async () => {
+  //   if (!subscription || permission !== 'granted') {
+  //     return;
+  //   }
 
-    setIsLoadingStatus(true);
-    try {
-      const fcmToken = await getFcmToken();
-      if (!fcmToken) {
-        console.warn('FCM 토큰을 가져올 수 없어 구독 상태를 조회할 수 없습니다.');
-        setIsLoadingStatus(false);
-        return;
-      }
+  //   setIsLoadingStatus(true);
+  //   try {
+  //     const fcmToken = await getFcmToken();
+  //     if (!fcmToken) {
+  //       console.warn('FCM 토큰을 가져올 수 없어 구독 상태를 조회할 수 없습니다.');
+  //       setIsLoadingStatus(false);
+  //       return;
+  //     }
 
-      const status = await getSubscriptionStatus(fcmToken);
-      if (status) {
-        setIsSubscriptionActive(status.active);
-        console.log('구독 상태 조회 성공:', status);
-      } else {
-        console.warn('구독 상태를 조회할 수 없습니다. 기본값(true)을 사용합니다.');
-      }
-    } catch (error) {
-      console.error('구독 상태 조회 오류:', error);
-    } finally {
-      setIsLoadingStatus(false);
-    }
-  }, [subscription, permission]);
+  //     const status = await getSubscriptionStatus(fcmToken);
+  //     if (status) {
+  //       setIsSubscriptionActive(status.active);
+  //       console.log('구독 상태 조회 성공:', status);
+  //     } else {
+  //       console.warn('구독 상태를 조회할 수 없습니다. 기본값(true)을 사용합니다.');
+  //     }
+  //   } catch (error) {
+  //     console.error('구독 상태 조회 오류:', error);
+  //   } finally {
+  //     setIsLoadingStatus(false);
+  //   }
+  // }, [subscription, permission]);
 
   // 구독이 변경될 때마다 구독 상태 조회
-  useEffect(() => {
-    if (subscription && permission === 'granted') {
-      fetchSubscriptionStatus();
-    }
-  }, [subscription, permission, fetchSubscriptionStatus]);
+  // useEffect(() => {
+  //   if (subscription && permission === 'granted') {
+  //     fetchSubscriptionStatus();
+  //   }
+  // }, [subscription, permission, fetchSubscriptionStatus]);
 
   const handleRequestPermission = async () => {
     try {
@@ -124,7 +124,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           console.log('구독 데이터:', subscriptionData);
 
           // 구독 성공 후 구독 상태 조회
-          await fetchSubscriptionStatus();
+          // await fetchSubscriptionStatus();
 
           Alert.alert(
             '알림 설정 완료',
@@ -218,7 +218,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
         setIsSubscriptionActive(newStatus);
 
         // 상태 업데이트 후 다시 조회하여 동기화
-        await fetchSubscriptionStatus();
+        // await fetchSubscriptionStatus();
 
         window.alert(`구독 상태 변경 완료\n알림 구독이 ${actionText}되었습니다.`);
       } catch (err) {
@@ -503,7 +503,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
       </View>
 
       {/* 구독 상태 토글 버튼 (구독이 활성화된 경우에만 표시) */}
-      {permission === 'granted' && subscription && (
+      {/* {permission === 'granted' && subscription && (
         <View style={{ marginTop: compact ? 8 : 12 }}>
           <View
             style={{
@@ -576,7 +576,7 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
             )}
           </TouchableOpacity>
         </View>
-      )}
+      )} */}
     </ThemedView>
   );
 };
