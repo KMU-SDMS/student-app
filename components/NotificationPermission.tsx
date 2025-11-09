@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { usePushNotification } from '../hooks/usePushNotification';
 import { Colors } from '../constants/Colors';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { updateSubscriptionStatus, getSubscriptionStatus } from '@/services/apiService';
 
 interface NotificationPermissionProps {
   onPermissionGranted?: () => void;
@@ -36,6 +37,75 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
     getSubscriptionData,
   } = usePushNotification();
 
+  // 구독 활성 상태 관리
+  const [isSubscriptionActive, setIsSubscriptionActive] = useState<boolean>(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
+  const [isLoadingStatus, setIsLoadingStatus] = useState<boolean>(false);
+
+  // FCM 토큰 가져오기 함수
+  const getFcmToken = async (): Promise<string | null> => {
+    try {
+      const { getToken } = await import('firebase/messaging');
+      const { getMessagingInstance } = await import('@/services/firebase');
+      const vapidKey = process.env.EXPO_PUBLIC_VAPID_PUBLIC_KEY || '';
+
+      if (!vapidKey) {
+        console.warn('VAPID 키가 설정되지 않았습니다.');
+        return null;
+      }
+
+      const messaging = await getMessagingInstance();
+      const registration = await navigator.serviceWorker.ready;
+      const fcmToken = await getToken(messaging, {
+        vapidKey,
+        serviceWorkerRegistration: registration,
+      });
+
+      return fcmToken || null;
+    } catch (error) {
+      console.error('FCM 토큰 가져오기 오류:', error);
+      return null;
+    }
+  };
+
+  // 구독 상태 조회 함수 (브라우저 알림 허용이 되어있을 때만 사용)
+  const fetchSubscriptionStatus = useCallback(async () => {
+    if (permission !== 'granted') {
+      return;
+    }
+
+    setIsLoadingStatus(true);
+    try {
+      const fcmToken = await getFcmToken();
+      if (!fcmToken) {
+        console.warn('FCM 토큰을 가져올 수 없어 구독 상태를 조회할 수 없습니다.');
+        setIsLoadingStatus(false);
+        return;
+      }
+
+      const status = await getSubscriptionStatus(fcmToken);
+      if (status) {
+        setIsSubscriptionActive(status.active);
+        console.log('구독 상태 조회 성공:', status);
+      } else {
+        console.warn('구독 상태를 조회할 수 없습니다. 기본값(false)을 사용합니다.');
+        setIsSubscriptionActive(false);
+      }
+    } catch (error) {
+      console.error('구독 상태 조회 오류:', error);
+      setIsSubscriptionActive(false);
+    } finally {
+      setIsLoadingStatus(false);
+    }
+  }, [permission]);
+
+  // 브라우저 알림 허용이 되어있을 때 백엔드 구독 상태 조회
+  useEffect(() => {
+    if (permission === 'granted') {
+      fetchSubscriptionStatus();
+    }
+  }, [permission, fetchSubscriptionStatus]);
+
   const handleRequestPermission = async () => {
     try {
       console.log('권한 요청 시작...');
@@ -54,6 +124,10 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
         if (newSubscription) {
           const subscriptionData = getSubscriptionData();
           console.log('구독 데이터:', subscriptionData);
+
+          // 구독 성공 후 백엔드 구독 상태 조회
+          await fetchSubscriptionStatus();
+
           Alert.alert(
             '알림 설정 완료',
             '새로운 공지사항이 등록되면 푸시 알림을 받으실 수 있습니다.',
@@ -104,6 +178,37 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
     ]);
   };
 
+  // 백엔드 구독 상태 활성화 핸들러 (브라우저 알림 허용되어 있고 백엔드 상태가 false일 때 사용)
+  const handleActivateBackendSubscription = async () => {
+    console.log('백엔드 구독 활성화 시도');
+
+    setIsUpdatingStatus(true);
+    try {
+      await updateSubscriptionStatus(true);
+      console.log('백엔드 구독 상태 활성화 성공');
+      setIsSubscriptionActive(true);
+
+      // 상태 업데이트 후 다시 조회하여 동기화
+      await fetchSubscriptionStatus();
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('구독 활성화 완료\n알림 구독이 활성화되었습니다.');
+      } else {
+        Alert.alert('구독 활성화 완료', '알림 구독이 활성화되었습니다.', [{ text: '확인' }]);
+      }
+    } catch (err) {
+      console.error('백엔드 구독 상태 활성화 오류:', err);
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`구독 활성화 중 오류가 발생했습니다: ${errorMessage}`);
+      } else {
+        Alert.alert('오류', `구독 활성화 중 오류가 발생했습니다: ${errorMessage}`);
+      }
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const getPermissionStatus = () => {
     if (!isSupported) {
       return { text: '지원되지 않음', color: colors.text, disabled: true };
@@ -111,8 +216,11 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
 
     switch (permission) {
       case 'granted':
+        if (subscription && isSubscriptionActive) {
+          return { text: '구독 중', color: '#10B981', disabled: false };
+        }
         return subscription
-          ? { text: '알림 활성화됨', color: '#10B981', disabled: false }
+          ? { text: '구독 필요', color: '#F59E0B', disabled: false }
           : { text: '구독 필요', color: '#F59E0B', disabled: false };
       case 'denied':
         return { text: '알림 차단됨', color: '#EF4444', disabled: true };
@@ -250,7 +358,8 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
       )}
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        {permission !== 'granted' || !subscription ? (
+        {permission !== 'granted' ? (
+          // 1차: 브라우저 알림 허용이 안되어있으면 기존 방식대로 알림 구독까지 진행
           <TouchableOpacity
             style={{
               flex: 1,
@@ -278,19 +387,20 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
               </Text>
             )}
           </TouchableOpacity>
-        ) : (
+        ) : permission === 'granted' && !subscription ? (
+          // 브라우저 알림 허용은 되어있지만 구독이 없는 경우
           <TouchableOpacity
             style={{
               flex: 1,
-              backgroundColor: '#EF4444',
+              backgroundColor: accent,
               paddingVertical: compact ? 8 : 12,
               paddingHorizontal: 16,
               borderRadius: 6,
               alignItems: 'center',
-              opacity: isLoading ? 0.5 : 1,
+              opacity: status.disabled || isLoading ? 0.5 : 1,
             }}
-            onPress={handleUnsubscribe}
-            disabled={isLoading}
+            onPress={handleRequestPermission}
+            disabled={status.disabled || isLoading}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
@@ -302,11 +412,65 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
                   fontWeight: '500',
                 }}
               >
-                알림 해제
+                구독하기
               </Text>
             )}
           </TouchableOpacity>
-        )}
+        ) : permission === 'granted' && subscription && isSubscriptionActive === false ? (
+          // 2차: 브라우저 알림 허용되어 있고 구독도 있지만 백엔드 상태가 false인 경우
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: accent,
+              paddingVertical: compact ? 8 : 12,
+              paddingHorizontal: 16,
+              borderRadius: 6,
+              alignItems: 'center',
+              opacity: isUpdatingStatus || isLoadingStatus ? 0.5 : 1,
+            }}
+            onPress={handleActivateBackendSubscription}
+            disabled={isUpdatingStatus || isLoadingStatus}
+          >
+            {isUpdatingStatus || isLoadingStatus ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: compact ? 13 : 14,
+                  fontWeight: '500',
+                }}
+              >
+                구독하기
+              </Text>
+            )}
+          </TouchableOpacity>
+        ) : permission === 'granted' && subscription && isSubscriptionActive === true ? (
+          // 브라우저 알림 허용되어 있고 구독도 있고 백엔드 상태가 true인 경우 - 구독 중 표시
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: colors.background,
+              paddingVertical: compact ? 8 : 12,
+              paddingHorizontal: 16,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: '#10B981',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text
+              style={{
+                color: '#10B981',
+                fontSize: compact ? 13 : 14,
+                fontWeight: '600',
+              }}
+            >
+              구독 중
+            </Text>
+          </View>
+        ) : null}
 
         {permission === 'denied' && (
           <TouchableOpacity
@@ -338,6 +502,82 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* 구독 상태 토글 버튼 (구독이 활성화된 경우에만 표시) */}
+      {/* {permission === 'granted' && subscription && (
+        <View style={{ marginTop: compact ? 8 : 12 }}>
+          <View
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: colors.text + '20',
+              padding: compact ? 10 : 12,
+              marginBottom: compact ? 6 : 8,
+            }}
+          >
+            <ThemedText
+              style={{
+                fontSize: compact ? 12 : 13,
+                color: colors.text + 'CC',
+                marginBottom: 4,
+              }}
+            >
+              백엔드 구독 상태:{' '}
+              {isLoadingStatus ? (
+                <Text style={{ color: colors.text + '99' }}>조회 중...</Text>
+              ) : (
+                <Text
+                  style={{ color: isSubscriptionActive ? '#10B981' : '#F59E0B', fontWeight: '500' }}
+                >
+                  {isSubscriptionActive ? '활성화' : '비활성화'}
+                </Text>
+              )}
+            </ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 11,
+                color: colors.text + '99',
+                lineHeight: 14,
+              }}
+            >
+              백엔드의 구독 토큰 관리 상태를 변경합니다.
+            </ThemedText>
+          </View>
+          <TouchableOpacity
+            style={[
+              {
+                backgroundColor: isSubscriptionActive ? '#F59E0B' : '#10B981',
+                paddingVertical: compact ? 8 : 12,
+                paddingHorizontal: 16,
+                borderRadius: 6,
+                alignItems: 'center',
+                opacity: isUpdatingStatus ? 0.5 : 1,
+              },
+              Platform.OS === 'web' &&
+                ({
+                  cursor: isUpdatingStatus ? 'not-allowed' : 'pointer',
+                } as any),
+            ]}
+            onPress={handleToggleSubscriptionStatus}
+            disabled={isUpdatingStatus}
+          >
+            {isUpdatingStatus ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: compact ? 13 : 14,
+                  fontWeight: '500',
+                }}
+              >
+                {isSubscriptionActive ? '구독 비활성화' : '구독 활성화'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )} */}
     </ThemedView>
   );
 };
