@@ -101,6 +101,13 @@ function apiPost<T>(path: string, data?: any) {
   });
 }
 
+function apiPatch<T>(path: string, data?: any) {
+  return request<T>(path, {
+    method: 'PATCH',
+    body: data ? JSON.stringify(data) : undefined,
+  });
+}
+
 // 페이지네이션된 공지사항 조회
 export const getNotices = async (page: number = 1): Promise<NoticesResponse> => {
   try {
@@ -156,6 +163,39 @@ interface SubscriptionPayload {
 
 export const subscribeToPushNotifications = async (payload: SubscriptionPayload) => {
   return apiPost<any>(`/api/subscriptions`, payload);
+};
+
+// 구독 상태 조회
+export interface SubscriptionStatusResponse {
+  active: boolean;
+  subscription_id: number;
+  student_no: string;
+  platform: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const getSubscriptionStatus = async (
+  fcmToken: string,
+): Promise<SubscriptionStatusResponse | null> => {
+  try {
+    const result = await apiGet<SubscriptionStatusResponse>(`/api/subscriptions/status`, {
+      fcm_token: fcmToken,
+    });
+    return result;
+  } catch (error) {
+    console.error('구독 상태 조회 오류:', error);
+    return null;
+  }
+};
+
+// 구독 상태 업데이트 (active: true/false)
+interface SubscriptionStatusUpdate {
+  active: boolean;
+}
+
+export const updateSubscriptionStatus = async (active: boolean): Promise<void> => {
+  return apiPatch<void>(`/api/subscriptions`, { active });
 };
 
 // 외박계 신청
