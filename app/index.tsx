@@ -16,7 +16,7 @@ export default function RootIndexRedirect() {
 
     const probe = async () => {
       try {
-        const resp = await fetch(`${API_BASE}/api/rooms`, {
+        const resp = await fetch(`${API_BASE}/api/calendar`, {
           method: 'GET',
           credentials: 'include',
           signal: controller.signal,
