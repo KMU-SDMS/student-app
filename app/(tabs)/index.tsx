@@ -1,10 +1,13 @@
-import { StyleSheet, ScrollView, View, Image } from 'react-native';
+import { StyleSheet, ScrollView, View, Image, Platform } from 'react-native';
+import { useEffect } from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import CalendarWidget from '@/components/CalendarWidget';
 import NoticeSection from '@/components/NoticeSection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
+
+const API_BASE = (process.env.EXPO_PUBLIC_API_BASE_URL as string) || '';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -13,6 +16,33 @@ export default function HomeScreen() {
 
   // 헤더 높이 계산: 안전 영역 + 패딩 + 아이콘 높이 + 패딩
   const headerHeight = insets.top + 16 + 28 + 16;
+
+  // 세션 체크: 401이면 /auth로 리다이렉트
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+
+    const controller = new AbortController();
+
+    const checkSession = async () => {
+      try {
+        const resp = await fetch(`${API_BASE}/api/calendar`, {
+          method: 'GET',
+          credentials: 'include',
+          signal: controller.signal,
+        });
+        if (resp.status === 401) {
+          window.location.replace('/auth');
+          return;
+        }
+      } catch (error) {
+        // 네트워크 오류 등은 무시 (이미 로드된 페이지는 유지)
+        console.error('Session check failed:', error);
+      }
+    };
+
+    checkSession();
+    return () => controller.abort();
+  }, []);
 
   return (
     <View style={styles.container}>
