@@ -101,10 +101,11 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
 
   // 브라우저 알림 허용이 되어있을 때 백엔드 구독 상태 조회
   useEffect(() => {
-    if (permission === 'granted') {
+    // subscription이 있을 때만 조회 (FCM 토큰이 서버에 저장된 후)
+    if (permission === 'granted' && subscription) {
       fetchSubscriptionStatus();
     }
-  }, [permission, fetchSubscriptionStatus]);
+  }, [permission, subscription, fetchSubscriptionStatus]);
 
   const handleRequestPermission = async () => {
     try {
@@ -125,16 +126,33 @@ export const NotificationPermission: React.FC<NotificationPermissionProps> = ({
           const subscriptionData = getSubscriptionData();
           console.log('구독 데이터:', subscriptionData);
 
-          // 구독 성공 후 백엔드 구독 상태 조회
-          await fetchSubscriptionStatus();
+          // 구독 성공 후 백엔드 구독 상태 활성화 시도
+          try {
+            await updateSubscriptionStatus(true);
+            console.log('백엔드 구독 상태 활성화 성공');
+            setIsSubscriptionActive(true);
 
-          Alert.alert(
-            '알림 설정 완료',
-            '새로운 공지사항이 등록되면 푸시 알림을 받으실 수 있습니다.',
-            [{ text: '확인' }],
-          );
+            // 상태 업데이트 후 다시 조회하여 동기화
+            await fetchSubscriptionStatus();
 
-          onPermissionGranted?.();
+            Alert.alert(
+              '알림 설정 완료',
+              '새로운 공지사항이 등록되면 푸시 알림을 받으실 수 있습니다.',
+              [{ text: '확인' }],
+            );
+
+            onPermissionGranted?.();
+          } catch (statusError) {
+            // 백엔드 상태 활성화 실패 시 - 에러를 표시하지 않고 구독하기 버튼이 나타나도록 함
+            console.error('백엔드 구독 상태 활성화 실패:', statusError);
+            setIsSubscriptionActive(false);
+
+            // 상태 조회하여 최신 상태 확인
+            await fetchSubscriptionStatus();
+
+            // 구독은 성공했지만 백엔드 상태 활성화에 실패한 경우
+            // 사용자에게는 에러를 표시하지 않고, UI에서 "구독하기" 버튼이 나타나도록 함
+          }
         } else {
           console.error('구독 생성 실패');
           Alert.alert(
