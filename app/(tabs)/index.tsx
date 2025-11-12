@@ -25,11 +25,11 @@ export default function HomeScreen() {
           </ThemedText>
         </ThemedView>
 
-        {/* 캘린더 위젯 */}
-        <CalendarWidget />
-
         {/* 공지사항 섹션 */}
         <NoticeSection />
+
+        {/* 캘린더 위젯 */}
+        <CalendarWidget />
       </ThemedView>
     </ScrollView>
   );
