@@ -198,8 +198,14 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.cardBody}>
+    <View>
+      <View style={styles.sectionHeader}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          일정
+        </ThemedText>
+      </View>
+      <ThemedView style={styles.container}>
+        <View style={styles.cardBody}>
         <View style={styles.header}>
           <TouchableOpacity
             onPress={goToPreviousMonth}
@@ -271,7 +277,8 @@ export default function CalendarWidget({ onDateSelect }: CalendarWidgetProps) {
           </View>
         </View>
       </View>
-    </ThemedView>
+      </ThemedView>
+    </View>
   );
 }
 
@@ -306,6 +313,16 @@ const getDynamicStyles = (colorScheme: 'light' | 'dark' | null | undefined) => {
       shadowRadius: 8,
       elevation: 4,
       overflow: 'hidden',
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+      marginHorizontal: 16,
+    },
+    sectionTitle: {
+      fontWeight: '600',
     },
     cardBody: {
       backgroundColor: cardBodyBackgroundColor,
