@@ -1,8 +1,9 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useRouter } from 'expo-router';
+import { getBills, BillResponse, BankInfo } from '@/services/apiService';
 
 interface MaintenanceFee {
   id: number;
@@ -11,39 +12,88 @@ interface MaintenanceFee {
   dueDate: string;
   isPaid: boolean;
   isOverdue: boolean;
+  type: string;
+  bankInfo: BankInfo[];
 }
 
-const mockMaintenanceFees: MaintenanceFee[] = [
-  {
-    id: 1,
-    month: '2025년 9월 전기세',
-    amount: 30000,
-    dueDate: '2025-09-31',
-    isPaid: false,
-    isOverdue: true,
-  },
-  {
-    id: 2,
-    month: '2025년 9월 가스비',
-    amount: 120000,
-    dueDate: '2025-09-15',
-    isPaid: false,
-    isOverdue: false,
-  },
-  {
-    id: 3,
-    month: '2025년 8월 수도세',
-    amount: 10000,
-    dueDate: '2025-8-31',
-    isPaid: true,
-    isOverdue: false,
-  },
-];
+// 관리비 타입을 한글로 변환
+const getTypeLabel = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    water: '수도세',
+    electricity: '전기세',
+    gas: '가스비',
+  };
+  return typeMap[type] || type;
+};
+
+// 날짜 형식 변환 및 월 추출
+const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    return `${year}년 ${month}월`;
+  } catch {
+    return dateString;
+  }
+};
+
+// 날짜가 지났는지 확인
+const isOverdue = (endDate: string): boolean => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(endDate);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate < today;
+  } catch {
+    return false;
+  }
+};
+
+// API 응답을 MaintenanceFee로 변환
+const transformBillToFee = (bill: BillResponse): MaintenanceFee => {
+  const month = formatDate(bill.endDate);
+  const typeLabel = getTypeLabel(bill.type);
+
+  return {
+    id: bill.id,
+    month: `${month} ${typeLabel}`,
+    amount: bill.amount,
+    dueDate: bill.endDate,
+    isPaid: false, // API에서 납부 상태를 제공하지 않으므로 기본값 false
+    isOverdue: isOverdue(bill.endDate),
+    type: bill.type,
+    bankInfo: bill.bankInfo,
+  };
+};
 
 export default function MaintenancePayment() {
   const router = useRouter();
-  const allFees = mockMaintenanceFees;
-  const hasFees = allFees.length > 0;
+  const [fees, setFees] = useState<MaintenanceFee[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBills = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const bills = await getBills();
+        const transformedFees = bills.map(transformBillToFee);
+        setFees(transformedFees);
+      } catch (err) {
+        console.error('관리비 조회 오류:', err);
+        setError('관리비를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBills();
+  }, []);
+
+  const hasFees = fees.length > 0;
 
   const handlePayment = (fee: MaintenanceFee) => {
     if (fee.isPaid) return; // 이미 납부 완료된 경우 무시
@@ -56,6 +106,37 @@ export default function MaintenancePayment() {
       },
     });
   };
+
+  if (isLoading) {
+    return (
+      <ThemedView style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText type="subtitle" style={styles.title}>
+            관리비 납부
+          </ThemedText>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#007AFF" />
+          <ThemedText style={styles.loadingText}>관리비를 불러오는 중...</ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  if (error) {
+    return (
+      <ThemedView style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText type="subtitle" style={styles.title}>
+            관리비 납부
+          </ThemedText>
+        </View>
+        <View style={styles.errorContainer}>
+          <ThemedText style={styles.errorText}>{error}</ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString() + '원';
@@ -91,12 +172,15 @@ export default function MaintenancePayment() {
       </View>
 
       <View style={styles.feeList}>
-        {allFees.map((fee) => (
+        {fees.map((fee) => (
           <View key={fee.id} style={styles.feeItem}>
             <View style={styles.feeInfo}>
               <ThemedText style={styles.feeMonth}>{fee.month}</ThemedText>
               <ThemedText style={styles.feeAmount}>{formatAmount(fee.amount)}</ThemedText>
-              <ThemedText style={styles.dueDate}>납부기한: {fee.dueDate}</ThemedText>
+              <ThemedText style={styles.dueDate}>
+                납부기한: {fee.dueDate.split('T')[0]}
+                {fee.isOverdue && <Text style={styles.overdueText}> (연체)</Text>}
+              </ThemedText>
             </View>
 
             <TouchableOpacity
@@ -200,5 +284,27 @@ const styles = StyleSheet.create({
   },
   completedButtonText: {
     color: 'white',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  loadingText: {
+    opacity: 0.7,
+    fontSize: 14,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    opacity: 0.8,
+  },
+  overdueText: {
+    color: '#FF3B30',
+    fontWeight: '600',
   },
 });

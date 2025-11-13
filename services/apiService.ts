@@ -244,3 +244,28 @@ export const getOvernightStayHistory = async (): Promise<OvernightStayResponse |
     return null;
   }
 };
+
+// 관리비 조회
+export interface BankInfo {
+  bank_name: string;
+  bank_number: string;
+}
+
+export interface BillResponse {
+  id: number;
+  studentNo: string;
+  type: string; // 'water', 'electric', 'gas' 등
+  amount: number;
+  endDate: string; // YYYY-MM-DD 형식
+  bankInfo: BankInfo[];
+}
+
+export const getBills = async (): Promise<BillResponse[]> => {
+  try {
+    const result = await apiGet<BillResponse[]>(`/api/bill`);
+    return result || [];
+  } catch (error) {
+    console.error('관리비 조회 오류:', error);
+    return [];
+  }
+};

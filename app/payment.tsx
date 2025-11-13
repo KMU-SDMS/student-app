@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,8 +11,9 @@ import {
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { BankInfo } from '@/services/apiService';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -67,24 +68,60 @@ const ChevronIcon = ({
   return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
 };
 
-// 임시 데이터
-const paymentDetails = {
-  issueDate: '2025년 9월 5일',
-  amount: '30000원',
-  dueDate: '2025년 9월 31일',
+interface PaymentFee {
+  id: number;
+  month: string;
+  amount: number;
+  dueDate: string;
+  isPaid: boolean;
+  isOverdue: boolean;
+  type: string;
+  bankInfo: BankInfo[];
+}
+
+// 날짜 형식 변환
+const formatDateDisplay = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${year}년 ${month}월 ${day}일`;
+  } catch {
+    return dateString;
+  }
 };
 
-const bankAccounts = [
-  { bank: '하나은행', number: '123-456789-01234' },
-  { bank: '국민은행', number: '456-789012-34567' },
-  { bank: '신한은행', number: '789-012345-67890' },
-];
+// 금액 포맷팅
+const formatAmount = (amount: number): string => {
+  return amount.toLocaleString() + '원';
+};
 
 export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const colorScheme = useColorScheme() ?? 'light';
   const styles = getDynamicStyles(colorScheme);
+  const [fee, setFee] = useState<PaymentFee | null>(null);
+
+  useEffect(() => {
+    if (params.fee) {
+      try {
+        const parsedFee = JSON.parse(params.fee as string) as PaymentFee;
+        setFee(parsedFee);
+      } catch (error) {
+        console.error('관리비 데이터 파싱 오류:', error);
+        Alert.alert('오류', '관리비 정보를 불러올 수 없습니다.', [
+          { text: '확인', onPress: () => router.back() },
+        ]);
+      }
+    } else {
+      Alert.alert('오류', '관리비 정보가 없습니다.', [
+        { text: '확인', onPress: () => router.back() },
+      ]);
+    }
+  }, [params.fee, router]);
 
   const handlePaymentComplete = () => {
     Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다. 홈 화면으로 이동합니다.', [
@@ -96,6 +133,42 @@ export default function PaymentScreen() {
     Clipboard.setString(text);
     Alert.alert('계좌번호 복사', `${text}가 클립보드에 복사되었습니다.`);
   };
+
+  if (!fee) {
+    return (
+      <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="뒤로가기"
+          >
+            <View style={styles.backButtonCircle}>
+              <ChevronIcon direction="left" size={12} color={styles.headerTitle.color as string} />
+            </View>
+          </TouchableOpacity>
+          <ThemedText type="title" style={styles.headerTitle}>
+            관리비 납부
+          </ThemedText>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>관리비 정보를 불러오는 중...</Text>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  const paymentDetails = {
+    amount: formatAmount(fee.amount),
+    dueDate: formatDateDisplay(fee.dueDate),
+  };
+
+  const bankAccounts = fee.bankInfo.map((bank) => ({
+    bank: bank.bank_name,
+    number: bank.bank_number,
+  }));
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
@@ -125,10 +198,6 @@ export default function PaymentScreen() {
           <ThemedText type="subtitle" style={styles.cardTitle}>
             이번 달 관리비
           </ThemedText>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>청구일</ThemedText>
-            <ThemedText style={styles.value}>{paymentDetails.issueDate}</ThemedText>
-          </View>
           <View style={styles.infoRow}>
             <ThemedText style={styles.label}>납부 금액</ThemedText>
             <ThemedText style={[styles.value, styles.amount]}>{paymentDetails.amount}</ThemedText>
@@ -321,6 +390,17 @@ const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
       color: 'white',
       fontSize: 16,
       fontWeight: '600',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    loadingText: {
+      fontSize: 14,
+      opacity: 0.7,
+      color: headerTextColor,
     },
   });
 };
