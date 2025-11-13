@@ -104,6 +104,7 @@ export default function PaymentScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const styles = getDynamicStyles(colorScheme);
   const [fee, setFee] = useState<PaymentFee | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState<boolean>(false);
 
   useEffect(() => {
     if (params.fee) {
@@ -131,7 +132,11 @@ export default function PaymentScreen() {
 
   const copyToClipboard = (text: string) => {
     Clipboard.setString(text);
-    Alert.alert('계좌번호 복사', `${text}가 클립보드에 복사되었습니다.`);
+    setShowCopyToast(true);
+    // 2초 후 토스트 메시지 자동 숨김
+    setTimeout(() => {
+      setShowCopyToast(false);
+    }, 2000);
   };
 
   if (!fee) {
@@ -236,6 +241,15 @@ export default function PaymentScreen() {
           <Text style={styles.buttonText}>납부 완료</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 복사 완료 토스트 메시지 */}
+      {showCopyToast && (
+        <View style={styles.toastContainer}>
+          <View style={styles.toast}>
+            <ThemedText style={styles.toastText}>복사 완료</ThemedText>
+          </View>
+        </View>
+      )}
     </ThemedView>
   );
 }
@@ -401,6 +415,30 @@ const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
       fontSize: 14,
       opacity: 0.7,
       color: headerTextColor,
+    },
+    toastContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      pointerEvents: 'none',
+    },
+    toast: {
+      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 8,
+      minWidth: 120,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    toastText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '500',
     },
   });
 };
