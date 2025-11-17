@@ -258,6 +258,7 @@ export interface BillResponse {
   amount: number;
   endDate: string; // YYYY-MM-DD 형식
   bankInfo: BankInfo[];
+  is_paid: boolean;
 }
 
 export const getBills = async (): Promise<BillResponse[]> => {
@@ -268,4 +269,14 @@ export const getBills = async (): Promise<BillResponse[]> => {
     console.error('관리비 조회 오류:', error);
     return [];
   }
+};
+
+// 관리비 납부 완료 처리
+export interface UpdateBillRequest {
+  type: string;
+  is_paid: boolean;
+}
+
+export const updateBillPaymentStatus = async (data: UpdateBillRequest): Promise<void> => {
+  return apiPatch<void>(`/api/bill`, data);
 };
