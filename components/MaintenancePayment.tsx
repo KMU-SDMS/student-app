@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
@@ -61,7 +61,7 @@ const transformBillToFee = (bill: BillResponse): MaintenanceFee => {
     month: `${month} ${typeLabel}`,
     amount: bill.amount,
     dueDate: bill.endDate,
-    isPaid: false, // API에서 납부 상태를 제공하지 않으므로 기본값 false
+    isPaid: bill.is_paid,
     isOverdue: isOverdue(bill.endDate),
     type: bill.type,
     bankInfo: bill.bankInfo,
@@ -74,30 +74,46 @@ export default function MaintenancePayment() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchBills = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const bills = await getBills();
+      const transformedFees = bills.map(transformBillToFee);
+      setFees(transformedFees);
+    } catch (err) {
+      console.error('관리비 조회 오류:', err);
+      setError('관리비를 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchBills = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const bills = await getBills();
-        const transformedFees = bills.map(transformBillToFee);
-        setFees(transformedFees);
-      } catch (err) {
-        console.error('관리비 조회 오류:', err);
-        setError('관리비를 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
+    fetchBills();
+  }, [fetchBills]);
+
+  // 납부 완료 이벤트 리스너 등록
+  useEffect(() => {
+    const handlePaymentComplete = () => {
+      fetchBills();
     };
 
-    fetchBills();
-  }, []);
+    // 웹 환경
+    if (typeof window !== 'undefined') {
+      window.addEventListener('billPaymentComplete', handlePaymentComplete);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('billPaymentComplete', handlePaymentComplete);
+      }
+    };
+  }, [fetchBills]);
 
   const hasFees = fees.length > 0;
 
   const handlePayment = (fee: MaintenanceFee) => {
-    if (fee.isPaid) return; // 이미 납부 완료된 경우 무시
-
     // 결제 화면으로 이동
     router.push({
       pathname: '/payment',
@@ -186,7 +202,6 @@ export default function MaintenancePayment() {
             <TouchableOpacity
               style={[styles.payButton, fee.isPaid && styles.completedButton]}
               onPress={() => handlePayment(fee)}
-              disabled={fee.isPaid}
             >
               <Text style={[styles.payButtonText, fee.isPaid && styles.completedButtonText]}>
                 {getButtonText(fee)}
