@@ -7,13 +7,15 @@ import {
   Alert,
   Clipboard,
   ScrollView,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { BankInfo } from '@/services/apiService';
+import { BankInfo, updateBillPaymentStatus } from '@/services/apiService';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -105,6 +107,7 @@ export default function PaymentScreen() {
   const styles = getDynamicStyles(colorScheme);
   const [fee, setFee] = useState<PaymentFee | null>(null);
   const [showCopyToast, setShowCopyToast] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   useEffect(() => {
     if (params.fee) {
@@ -124,10 +127,87 @@ export default function PaymentScreen() {
     }
   }, [params.fee, router]);
 
-  const handlePaymentComplete = () => {
-    Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다. 홈 화면으로 이동합니다.', [
-      { text: '확인', onPress: () => router.push('/') },
-    ]);
+  const handlePaymentComplete = async () => {
+    if (!fee || fee.isPaid) return;
+
+    // 확인 다이얼로그 표시 (PWA 웹앱에도 대응)
+    let confirmed = false;
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      // 웹 환경에서는 window.confirm 사용
+      confirmed = window.confirm('납부를 완료하셨습니까?');
+    } else {
+      // 네이티브 환경에서는 Alert.alert 사용
+      return new Promise<void>((resolve) => {
+        Alert.alert(
+          '납부 확인',
+          '납부를 완료하셨습니까?',
+          [
+            {
+              text: '취소',
+              style: 'cancel',
+              onPress: () => resolve(),
+            },
+            {
+              text: '확인',
+              onPress: async () => {
+                await processPayment();
+                resolve();
+              },
+            },
+          ],
+          { cancelable: true }
+        );
+      });
+    }
+
+    if (!confirmed) return;
+
+    await processPayment();
+  };
+
+  const processPayment = async () => {
+    if (!fee) return;
+
+    setIsProcessing(true);
+    try {
+      await updateBillPaymentStatus({
+        type: fee.type,
+        is_paid: true,
+      });
+
+      // 납부 완료 처리 후 관리비 위젯 새로고침을 위한 커스텀 이벤트 발생
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billPaymentComplete'));
+      }
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        // 웹 환경에서는 window.alert 사용
+        window.alert('납부 완료 처리되었습니다.');
+        router.back();
+      } else {
+        // 네이티브 환경에서는 Alert.alert 사용
+        Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다.', [
+          {
+            text: '확인',
+            onPress: () => {
+              router.back();
+            },
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('납부 완료 처리 오류:', error);
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('납부 완료 처리 중 오류가 발생했습니다.');
+      } else {
+        Alert.alert('오류', '납부 완료 처리 중 오류가 발생했습니다.', [
+          { text: '확인' },
+        ]);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -234,13 +314,23 @@ export default function PaymentScreen() {
       </ScrollView>
 
       {/* 하단 버튼 */}
-      <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}
-      >
-        <TouchableOpacity style={styles.button} onPress={handlePaymentComplete}>
-          <Text style={styles.buttonText}>납부 완료</Text>
-        </TouchableOpacity>
-      </View>
+      {!fee.isPaid && (
+        <View
+          style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}
+        >
+          <TouchableOpacity
+            style={[styles.button, isProcessing && styles.buttonDisabled]}
+            onPress={handlePaymentComplete}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.buttonText}>납부 완료</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* 복사 완료 토스트 메시지 */}
       {showCopyToast && (
@@ -399,6 +489,9 @@ const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
     },
     buttonText: {
       color: 'white',
