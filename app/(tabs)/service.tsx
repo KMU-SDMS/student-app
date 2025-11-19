@@ -2,7 +2,7 @@ import { StyleSheet, ScrollView, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 // TODO: API 연동 및 기능 구현 예정
-// import MaintenancePayment from '@/components/MaintenancePayment';
+import MaintenancePayment from '@/components/MaintenancePayment';
 import OvernightStayWidget from '@/components/OvernightStayWidget';
 import RepairRequestWidget from '@/components/RepairRequestWidget';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,17 +28,7 @@ export default function ServiceScreen() {
 
         {/* 관리비 납부 섹션 */}
         {/* TODO: API 연동 및 기능 구현 예정 */}
-        {/* <MaintenancePayment /> */}
-        <ThemedView style={styles.maintenanceContainer}>
-          <View style={styles.maintenanceHeader}>
-            <ThemedText type="subtitle" style={styles.maintenanceTitle}>
-              관리비 납부
-            </ThemedText>
-          </View>
-          <View style={styles.maintenanceComingSoon}>
-            <ThemedText style={styles.comingSoonText}>현재 준비 중입니다.</ThemedText>
-          </View>
-        </ThemedView>
+        <MaintenancePayment />
 
         {/* 외박계 신청 섹션 */}
         <OvernightStayWidget />
@@ -72,27 +62,5 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     opacity: 0.7,
-  },
-  maintenanceContainer: {
-    marginHorizontal: 16,
-    marginTop: 0,
-    marginBottom: 8,
-  },
-  maintenanceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  maintenanceTitle: {
-    fontWeight: '600',
-  },
-  maintenanceComingSoon: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  comingSoonText: {
-    opacity: 0.7,
-    fontSize: 14,
   },
 });

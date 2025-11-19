@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,12 +7,15 @@ import {
   Alert,
   Clipboard,
   ScrollView,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { BankInfo, updateBillPaymentStatus } from '@/services/apiService';
 
 // React Native Web 호환 아이콘 컴포넌트
 interface ChevronIconProps {
@@ -67,35 +70,190 @@ const ChevronIcon = ({
   return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
 };
 
-// 임시 데이터
-const paymentDetails = {
-  issueDate: '2025년 9월 5일',
-  amount: '30000원',
-  dueDate: '2025년 9월 31일',
+interface PaymentFee {
+  id: number;
+  month: string;
+  amount: number;
+  dueDate: string;
+  isPaid: boolean;
+  isOverdue: boolean;
+  type: string;
+  bankInfo: BankInfo[];
+}
+
+// 날짜 형식 변환
+const formatDateDisplay = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${year}년 ${month}월 ${day}일`;
+  } catch {
+    return dateString;
+  }
 };
 
-const bankAccounts = [
-  { bank: '하나은행', number: '123-456789-01234' },
-  { bank: '국민은행', number: '456-789012-34567' },
-  { bank: '신한은행', number: '789-012345-67890' },
-];
+// 금액 포맷팅
+const formatAmount = (amount: number): string => {
+  return amount.toLocaleString() + '원';
+};
 
 export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const colorScheme = useColorScheme() ?? 'light';
   const styles = getDynamicStyles(colorScheme);
+  const [fee, setFee] = useState<PaymentFee | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  const handlePaymentComplete = () => {
-    Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다. 홈 화면으로 이동합니다.', [
-      { text: '확인', onPress: () => router.push('/') },
-    ]);
+  useEffect(() => {
+    if (params.fee) {
+      try {
+        const parsedFee = JSON.parse(params.fee as string) as PaymentFee;
+        setFee(parsedFee);
+      } catch (error) {
+        console.error('관리비 데이터 파싱 오류:', error);
+        Alert.alert('오류', '관리비 정보를 불러올 수 없습니다.', [
+          { text: '확인', onPress: () => router.back() },
+        ]);
+      }
+    } else {
+      Alert.alert('오류', '관리비 정보가 없습니다.', [
+        { text: '확인', onPress: () => router.back() },
+      ]);
+    }
+  }, [params.fee, router]);
+
+  const handlePaymentComplete = async () => {
+    if (!fee || fee.isPaid) return;
+
+    // 확인 다이얼로그 표시 (PWA 웹앱에도 대응)
+    let confirmed = false;
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      // 웹 환경에서는 window.confirm 사용
+      confirmed = window.confirm('납부를 완료하셨습니까?');
+    } else {
+      // 네이티브 환경에서는 Alert.alert 사용
+      return new Promise<void>((resolve) => {
+        Alert.alert(
+          '납부 확인',
+          '납부를 완료하셨습니까?',
+          [
+            {
+              text: '취소',
+              style: 'cancel',
+              onPress: () => resolve(),
+            },
+            {
+              text: '확인',
+              onPress: async () => {
+                await processPayment();
+                resolve();
+              },
+            },
+          ],
+          { cancelable: true }
+        );
+      });
+    }
+
+    if (!confirmed) return;
+
+    await processPayment();
+  };
+
+  const processPayment = async () => {
+    if (!fee) return;
+
+    setIsProcessing(true);
+    try {
+      await updateBillPaymentStatus({
+        type: fee.type,
+        is_paid: true,
+      });
+
+      // 납부 완료 처리 후 관리비 위젯 새로고침을 위한 커스텀 이벤트 발생
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billPaymentComplete'));
+      }
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        // 웹 환경에서는 window.alert 사용
+        window.alert('납부 완료 처리되었습니다.');
+        router.back();
+      } else {
+        // 네이티브 환경에서는 Alert.alert 사용
+        Alert.alert('납부 처리 완료', '납부 완료 처리되었습니다.', [
+          {
+            text: '확인',
+            onPress: () => {
+              router.back();
+            },
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('납부 완료 처리 오류:', error);
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('납부 완료 처리 중 오류가 발생했습니다.');
+      } else {
+        Alert.alert('오류', '납부 완료 처리 중 오류가 발생했습니다.', [
+          { text: '확인' },
+        ]);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
     Clipboard.setString(text);
-    Alert.alert('계좌번호 복사', `${text}가 클립보드에 복사되었습니다.`);
+    setShowCopyToast(true);
+    // 2초 후 토스트 메시지 자동 숨김
+    setTimeout(() => {
+      setShowCopyToast(false);
+    }, 2000);
   };
+
+  if (!fee) {
+    return (
+      <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="뒤로가기"
+          >
+            <View style={styles.backButtonCircle}>
+              <ChevronIcon direction="left" size={12} color={styles.headerTitle.color as string} />
+            </View>
+          </TouchableOpacity>
+          <ThemedText type="title" style={styles.headerTitle}>
+            관리비 납부
+          </ThemedText>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>관리비 정보를 불러오는 중...</Text>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  const paymentDetails = {
+    amount: formatAmount(fee.amount),
+    dueDate: formatDateDisplay(fee.dueDate),
+  };
+
+  const bankAccounts = fee.bankInfo.map((bank) => ({
+    bank: bank.bank_name,
+    number: bank.bank_number,
+  }));
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
@@ -125,10 +283,6 @@ export default function PaymentScreen() {
           <ThemedText type="subtitle" style={styles.cardTitle}>
             이번 달 관리비
           </ThemedText>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>청구일</ThemedText>
-            <ThemedText style={styles.value}>{paymentDetails.issueDate}</ThemedText>
-          </View>
           <View style={styles.infoRow}>
             <ThemedText style={styles.label}>납부 금액</ThemedText>
             <ThemedText style={[styles.value, styles.amount]}>{paymentDetails.amount}</ThemedText>
@@ -160,13 +314,32 @@ export default function PaymentScreen() {
       </ScrollView>
 
       {/* 하단 버튼 */}
-      <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}
-      >
-        <TouchableOpacity style={styles.button} onPress={handlePaymentComplete}>
-          <Text style={styles.buttonText}>납부 완료</Text>
-        </TouchableOpacity>
-      </View>
+      {!fee.isPaid && (
+        <View
+          style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}
+        >
+          <TouchableOpacity
+            style={[styles.button, isProcessing && styles.buttonDisabled]}
+            onPress={handlePaymentComplete}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.buttonText}>납부 완료</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* 복사 완료 토스트 메시지 */}
+      {showCopyToast && (
+        <View style={styles.toastContainer}>
+          <View style={styles.toast}>
+            <ThemedText style={styles.toastText}>복사 완료</ThemedText>
+          </View>
+        </View>
+      )}
     </ThemedView>
   );
 }
@@ -317,10 +490,48 @@ const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
     buttonText: {
       color: 'white',
       fontSize: 16,
       fontWeight: '600',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    loadingText: {
+      fontSize: 14,
+      opacity: 0.7,
+      color: headerTextColor,
+    },
+    toastContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      pointerEvents: 'none',
+    },
+    toast: {
+      backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 8,
+      minWidth: 120,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    toastText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '500',
     },
   });
 };
