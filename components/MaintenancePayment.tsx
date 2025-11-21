@@ -195,7 +195,7 @@ export default function MaintenancePayment() {
               <ThemedText style={styles.feeAmount}>{formatAmount(fee.amount)}</ThemedText>
               <ThemedText style={styles.dueDate}>
                 납부기한: {fee.dueDate.split('T')[0]}
-                {fee.isOverdue && <Text style={styles.overdueText}> (연체)</Text>}
+                {fee.isOverdue && !fee.isPaid && <Text style={styles.overdueText}> (연체)</Text>}
               </ThemedText>
             </View>
 
