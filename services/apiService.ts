@@ -263,8 +263,15 @@ export interface BillResponse {
 
 export const getBills = async (): Promise<BillResponse[]> => {
   try {
-    const result = await apiGet<BillResponse[]>(`/api/bill`);
-    return result || [];
+    // API 응답이 { "학번": [...] } 형태이므로 Record<string, BillResponse[]> 타입으로 받음
+    const result = await apiGet<Record<string, BillResponse[]>>(`/api/bill`);
+
+    if (!result) return [];
+
+    // 객체의 값들 중 첫 번째 배열을 추출 (학번 키를 몰라도 동작)
+    const bills = Object.values(result)[0];
+
+    return Array.isArray(bills) ? bills : [];
   } catch (error) {
     console.error('관리비 조회 오류:', error);
     return [];
