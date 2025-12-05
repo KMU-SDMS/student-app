@@ -7,7 +7,6 @@ import NoticeSection from '@/components/NoticeSection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter } from 'expo-router';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const API_BASE = (process.env.EXPO_PUBLIC_API_BASE_URL as string) || '';
 
@@ -19,12 +18,7 @@ interface ChevronIconProps {
   thickness?: number;
 }
 
-const ChevronIcon = ({
-  direction,
-  size = 10,
-  color = '#000',
-  thickness = 2,
-}: ChevronIconProps) => {
+const ChevronIcon = ({ direction, size = 10, color = '#000', thickness = 2 }: ChevronIconProps) => {
   const baseStyle = {
     width: size,
     height: size,
@@ -36,29 +30,43 @@ const ChevronIcon = ({
   const rightStyle = {
     borderRightWidth: thickness,
     borderBottomWidth: thickness,
-    transform: [
-      { rotate: '-45deg' },
-      { translateX: -offset },
-      { translateY: -offset },
-    ],
+    transform: [{ rotate: '-45deg' }, { translateX: -offset }, { translateY: -offset }],
   } as const;
 
   const leftStyle = {
     borderLeftWidth: thickness,
     borderBottomWidth: thickness,
-    transform: [
-      { rotate: '45deg' },
-      { translateX: offset },
-      { translateY: -offset },
-    ],
+    transform: [{ rotate: '45deg' }, { translateX: offset }, { translateY: -offset }],
   } as const;
 
   return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
 };
 
-// 종 모양 아이콘 컴포넌트 (웹 호환)
+// 종 모양 아이콘 컴포넌트 (웹 호환 - SVG 사용)
 const BellIcon = ({ size = 24, color }: { size?: number; color?: string }) => {
   const iconColor = color || '#000';
+
+  if (Platform.OS === 'web') {
+    // 웹에서는 SVG 직접 사용 (폰트 로드 문제 없음)
+    // React Native Web에서는 웹 컴포넌트를 직접 사용 가능
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.89 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z"
+          fill={iconColor}
+        />
+      </svg>
+    ) as any;
+  }
+
+  // 네이티브에서는 MaterialIcons 사용
+  const MaterialIcons = require('@expo/vector-icons/MaterialIcons').default;
   return <MaterialIcons name="notifications" size={size} color={iconColor} />;
 };
 
@@ -109,7 +117,7 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
         <TouchableOpacity
-          onPress={() => router.push('/notifications')}
+          onPress={() => router.push('/notifications' as any)}
           style={styles.notificationButton}
           accessibilityRole="button"
           accessibilityLabel="알림 내역 보기"

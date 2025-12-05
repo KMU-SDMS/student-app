@@ -51,6 +51,7 @@ export default function RootLayout() {
           <Stack.Screen name="home" options={{ headerShown: false }} />
           <Stack.Screen name="notices" options={{ headerShown: false }} />
           <Stack.Screen name="notice-detail" options={{ headerShown: false }} />
+          <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="payment" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
