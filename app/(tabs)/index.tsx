@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, View, Image, Platform } from 'react-native';
+import { StyleSheet, ScrollView, View, Image, Platform, TouchableOpacity } from 'react-native';
 import { useEffect } from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -6,12 +6,68 @@ import CalendarWidget from '@/components/CalendarWidget';
 import NoticeSection from '@/components/NoticeSection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useRouter } from 'expo-router';
 
 const API_BASE = (process.env.EXPO_PUBLIC_API_BASE_URL as string) || '';
+
+// React Native Web 호환 아이콘 컴포넌트
+interface ChevronIconProps {
+  direction: 'left' | 'right';
+  size?: number;
+  color?: string;
+  thickness?: number;
+}
+
+const ChevronIcon = ({
+  direction,
+  size = 10,
+  color = '#000',
+  thickness = 2,
+}: ChevronIconProps) => {
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderColor: color,
+  } as const;
+
+  const offset = size * 0.25;
+
+  const rightStyle = {
+    borderRightWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '-45deg' },
+      { translateX: -offset },
+      { translateY: -offset },
+    ],
+  } as const;
+
+  const leftStyle = {
+    borderLeftWidth: thickness,
+    borderBottomWidth: thickness,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: offset },
+      { translateY: -offset },
+    ],
+  } as const;
+
+  return <View style={[baseStyle, direction === 'right' ? rightStyle : leftStyle]} />;
+};
+
+// 종 모양 아이콘 컴포넌트 (웹 호환)
+const BellIcon = ({ size = 20 }: { size?: number }) => {
+  return (
+    <ThemedText style={{ fontSize: size }}>
+      🔔
+    </ThemedText>
+  );
+};
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
+  const router = useRouter();
   const dynamicStyles = getDynamicStyles(colorScheme);
 
   // 헤더 높이 계산: 안전 영역 + 패딩 + 아이콘 높이 + 패딩
@@ -54,6 +110,17 @@ export default function HomeScreen() {
             제2정릉 생활관
           </ThemedText>
         </View>
+        <TouchableOpacity
+          onPress={() => router.push('/notifications')}
+          style={styles.notificationButton}
+          accessibilityRole="button"
+          accessibilityLabel="알림 내역 보기"
+        >
+          <BellIcon size={20} />
+          <View style={{ marginLeft: 4 }}>
+            <ChevronIcon direction="right" size={8} color={dynamicStyles.headerTitleLeft.color as string} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -134,5 +201,11 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 6,
+  },
+  notificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 });
