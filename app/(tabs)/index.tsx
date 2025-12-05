@@ -7,6 +7,7 @@ import NoticeSection from '@/components/NoticeSection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter } from 'expo-router';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const API_BASE = (process.env.EXPO_PUBLIC_API_BASE_URL as string) || '';
 
@@ -56,12 +57,9 @@ const ChevronIcon = ({
 };
 
 // 종 모양 아이콘 컴포넌트 (웹 호환)
-const BellIcon = ({ size = 20 }: { size?: number }) => {
-  return (
-    <ThemedText style={{ fontSize: size }}>
-      🔔
-    </ThemedText>
-  );
+const BellIcon = ({ size = 24, color }: { size?: number; color?: string }) => {
+  const iconColor = color || '#000';
+  return <MaterialIcons name="notifications" size={size} color={iconColor} />;
 };
 
 export default function HomeScreen() {
@@ -116,10 +114,7 @@ export default function HomeScreen() {
           accessibilityRole="button"
           accessibilityLabel="알림 내역 보기"
         >
-          <BellIcon size={20} />
-          <View style={{ marginLeft: 4 }}>
-            <ChevronIcon direction="right" size={8} color={dynamicStyles.headerTitleLeft.color as string} />
-          </View>
+          <BellIcon size={24} color={dynamicStyles.headerTitleLeft.color as string} />
         </TouchableOpacity>
       </View>
 
@@ -154,6 +149,7 @@ const getDynamicStyles = (colorScheme: 'light' | 'dark') => {
     headerBar: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: 20,
       paddingBottom: 16,
       backgroundColor: headerBackgroundColor,
